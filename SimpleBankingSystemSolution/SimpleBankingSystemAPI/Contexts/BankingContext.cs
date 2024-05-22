@@ -48,7 +48,8 @@ namespace SimpleBankingSystemAPI.Contexts
                 .HasForeignKey(lr => lr.LoanId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-
+            #region Seeding Data
+            // Seed Admin User, username - Admin , password - password
             var hmac = new HMACSHA512();
             var adminUser = new User
             {
@@ -68,7 +69,9 @@ namespace SimpleBankingSystemAPI.Contexts
 
             };
             modelBuilder.Entity<User>().HasData(adminUser);
+
+            #endregion
         }
-        
+
     }
 }
