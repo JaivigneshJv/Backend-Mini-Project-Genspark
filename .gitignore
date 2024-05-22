@@ -1,0 +1,52 @@
+# .NET Core/Visual Studio - Generated using Co-Pilot
+# Build and package directories
+bin/
+obj/
+out/
+
+# Visual Studio files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code files
+.vscode/
+
+# JetBrains Rider IDE files
+.idea/
+
+# Code files
+*.csproj.user
+
+# Compiled files
+*.dll
+*.exe
+*.pdb
+*.out
+*.log
+
+# Temporary files
+*.tmp
+
+# Test results and coverage reports
+TestResults/
+.coverage
+*.coveragexml
+*.trx
+
+# NuGet packages
+packages/
+
+# Log files
+*.log
+
+# Visual Studio temporary files
+*.vs/
+*.bak
+
+# Application data files
+appsettings.Development.json
+appsettings.Production.json
+**/*appsettings.json
+appsettings.json
