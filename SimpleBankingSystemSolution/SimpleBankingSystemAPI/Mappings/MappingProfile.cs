@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
-using SimpleBankingSystemAPI.Models.DTOs;
 using SimpleBankingSystemAPI.Models;
+using SimpleBankingSystemAPI.Models.DTOs.UserDTOs;
 
 namespace SimpleBankingSystemAPI.Mappings
 {
@@ -8,7 +8,8 @@ namespace SimpleBankingSystemAPI.Mappings
     {
         public MappingProfile()
         {
-            CreateMap<User, UserDto>();
+            CreateMap<User, UserProfileDto>();
+            CreateMap<UpdateUserProfileRequest, User>();
         }
     }
 }

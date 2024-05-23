@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 
-namespace SimpleBankingSystemAPI.Models.DTOs
+namespace SimpleBankingSystemAPI.Models.DTOs.AuthDTOs
 {
     public class RegisterRequest
     {
         [Required, MaxLength(20)]
         public string? Username { get; set; }
-        [Required, PasswordPropertyText,MaxLength(20)]
+        [Required, PasswordPropertyText, MaxLength(20)]
         public string? Password { get; set; }
 
         [Required, MaxLength(50)]

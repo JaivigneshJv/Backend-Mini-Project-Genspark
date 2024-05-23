@@ -1,7 +1,8 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimpleBankingSystemAPI.Interfaces;
-using SimpleBankingSystemAPI.Models.DTOs;
+using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
 
 namespace SimpleBankingSystemAPI.Controllers
 {
@@ -42,7 +43,8 @@ namespace SimpleBankingSystemAPI.Controllers
                 {
                     HttpOnly = true,
                     SameSite = SameSiteMode.Strict,
-                    Secure = true
+                    Secure = true,
+                    MaxAge = TimeSpan.FromMinutes(15)
                 });
                 return Ok(new { token });
             }
@@ -50,6 +52,17 @@ namespace SimpleBankingSystemAPI.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [Authorize]
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            if (Request.Cookies["jwt-token-banking-app"] != null)
+            {
+                Response.Cookies.Delete("jwt-token-banking-app");
+            }
+            return Ok(new { Message = "Logged out successfully." });
         }
     }
 }

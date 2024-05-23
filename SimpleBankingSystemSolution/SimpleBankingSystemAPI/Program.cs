@@ -87,7 +87,7 @@ namespace SimpleBankingSystemAPI
             }
 
             app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
 
 

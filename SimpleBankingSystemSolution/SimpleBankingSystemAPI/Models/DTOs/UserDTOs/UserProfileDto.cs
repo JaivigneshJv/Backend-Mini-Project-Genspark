@@ -1,6 +1,6 @@
-﻿namespace SimpleBankingSystemAPI.Models.DTOs
+﻿namespace SimpleBankingSystemAPI.Models.DTOs.UserDTOs
 {
-    public class UserDto
+    public class UserProfileDto
     {
         public Guid Id { get; set; }
         public string? Username { get; set; }

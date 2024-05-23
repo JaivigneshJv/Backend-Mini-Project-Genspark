@@ -2,13 +2,14 @@
 using Microsoft.IdentityModel.Tokens;
 using SimpleBankingSystemAPI.Contexts;
 using SimpleBankingSystemAPI.Interfaces;
-using SimpleBankingSystemAPI.Models.DTOs;
 using SimpleBankingSystemAPI.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using SimpleBankingSystemAPI.Exceptions;
+using SimpleBankingSystemAPI.Models.DTOs.UserDTOs;
+using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
 
 namespace SimpleBankingSystemAPI.Services
 {
@@ -25,7 +26,7 @@ namespace SimpleBankingSystemAPI.Services
             _configuration = configuration;
         }
 
-        public async Task<UserDto> RegisterAsync(RegisterRequest request)
+        public async Task<UserProfileDto> RegisterAsync(RegisterRequest request)
         {
             if (await _context.Users!.AnyAsync(u => u.Username == request.Username))
                 throw new UserAlreadyExistsException("Username already taken");
@@ -52,7 +53,7 @@ namespace SimpleBankingSystemAPI.Services
             _context.Users!.Add(user);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<UserDto>(user);
+            return _mapper.Map<UserProfileDto>(user);
         }
 
         public async Task<string> LoginAsync(LoginRequest request)
@@ -68,6 +69,48 @@ namespace SimpleBankingSystemAPI.Services
             return GenerateJwtToken(user);
         }
 
+        public async Task<UserProfileDto> GetUserAsync(Guid userId)
+        {
+            var user = await _context.Users!.FindAsync(userId);
+            if(user == null)
+                throw new UserNotFoundException("User not found");
+            return _mapper.Map<UserProfileDto>(user);
+
+        }
+
+        public async Task<UserProfileDto> UpdateUserProfileAsync(Guid userId, UpdateUserProfileRequest request)
+        {
+            var user = await _context.Users!.FindAsync(userId);
+
+            if (user == null)
+                throw new UserNotFoundException("User not found");
+
+            _mapper.Map(request, user);
+            user.UpdatedDate = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return _mapper.Map<UserProfileDto>(user);
+        }
+
+        public async Task UpdateUserPasswordAsync(Guid userId, UpdatePasswordRequest request)
+        {
+            var user = await _context.Users!.FindAsync(userId);
+
+            if (user == null)
+                throw new UserNotFoundException("User not found");
+
+            if (!VerifyPasswordHash(request.OldPassword!, user.PasswordHash!, user.PasswordSalt!))
+                throw new InvalidCredentialException("Old password is incorrect");
+
+            CreatePasswordHash(request.NewPassword!, out byte[] passwordHash, out byte[] passwordSalt);
+
+            user.PasswordHash = passwordHash;
+            user.PasswordSalt = passwordSalt;
+            user.UpdatedDate = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+        }
 
         #region PasswordHashing
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)

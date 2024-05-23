@@ -1,4 +1,4 @@
-﻿namespace SimpleBankingSystemAPI.Models.DTOs
+﻿namespace SimpleBankingSystemAPI.Models.DTOs.AuthDTOs
 {
     public class LoginRequest
     {
