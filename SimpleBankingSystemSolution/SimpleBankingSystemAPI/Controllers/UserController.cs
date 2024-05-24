@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SimpleBankingSystemAPI.Interfaces;
 using SimpleBankingSystemAPI.Models.DTOs.UserDTOs;
 using System.Security.Claims;
 using SimpleBankingSystemAPI.Exceptions;
+using SimpleBankingSystemAPI.Models.DTOs.UserDTOs.EmailDTOs;
+using SimpleBankingSystemAPI.Interfaces.Services;
 
 namespace SimpleBankingSystemAPI.Controllers
 {
@@ -11,10 +12,12 @@ namespace SimpleBankingSystemAPI.Controllers
     [ApiController]
     public class UserController : ControllerBase
     {
+        private readonly IEmailSender _emailSender;
         private readonly IUserService _userService;
-        public UserController(IUserService userService)
+        public UserController(IUserService userService, IEmailSender emailSender)
         {
             _userService = userService;
+            _emailSender = emailSender;
         }
 
         [Authorize]
@@ -32,22 +35,6 @@ namespace SimpleBankingSystemAPI.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var profile = await _userService.UpdateUserProfileAsync(new Guid(userId!), request);
             return Ok(profile);
-        }
-
-        [HttpPut("password")]
-        public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
-        {
-            if(request.OldPassword == request.NewPassword)
-            {
-                throw new SamePasswordException("New password and Old password can't be the same");
-            }
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await _userService.UpdateUserPasswordAsync(new Guid(userId!), request);
-            if (Request.Cookies["jwt-token-banking-app"] != null)
-            {
-                Response.Cookies.Delete("jwt-token-banking-app");
-            }
-            return Ok(new { Message = "Password Changed successfully." });
         }
     }
 }

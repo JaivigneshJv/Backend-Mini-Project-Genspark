@@ -16,13 +16,15 @@ namespace SimpleBankingSystemAPI.Models
 
         [Required, Column(TypeName = "decimal(18,2)")]
         public decimal Balance { get; set; }
+        public byte[]? TransactionPasswordHash { get; set; }
+        public byte[]? TransactionPasswordKey { get; set; }
 
         [Required]
         public DateTime CreatedDate { get; set; }
 
         [Required]
         public DateTime UpdatedDate { get; set; }
-
+        public bool isActive { get; set; }
         public User? User { get; set; }
         public ICollection<Transaction>? Transactions { get; set; }
         public ICollection<Loan>? Loans { get; set; }

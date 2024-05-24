@@ -1,6 +1,6 @@
 ﻿using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
 using SimpleBankingSystemAPI.Models.DTOs.UserDTOs;
-namespace SimpleBankingSystemAPI.Interfaces
+namespace SimpleBankingSystemAPI.Interfaces.Services
 {
     public interface IUserService
     {
@@ -9,5 +9,7 @@ namespace SimpleBankingSystemAPI.Interfaces
         Task<UserProfileDto> GetUserAsync(Guid userId);
         Task<UserProfileDto> UpdateUserProfileAsync(Guid userId, UpdateUserProfileRequest request);
         Task UpdateUserPasswordAsync(Guid userId, UpdatePasswordRequest request);
+        Task RequestEmailUpdateAsync(Guid userId, string newEmail);
+        Task VerifyEmailUpdateAsync(Guid userId, string verificationCode);
     }
 }

@@ -3,8 +3,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SimpleBankingSystemAPI.Contexts;
-using SimpleBankingSystemAPI.Interfaces;
+using SimpleBankingSystemAPI.Interfaces.Repositories;
+using SimpleBankingSystemAPI.Interfaces.Services;
 using SimpleBankingSystemAPI.Mappings;
+using SimpleBankingSystemAPI.Repositories;
 using SimpleBankingSystemAPI.Services;
 using System.Text;
 
@@ -19,7 +21,6 @@ namespace SimpleBankingSystemAPI
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
-
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
@@ -39,7 +40,12 @@ namespace SimpleBankingSystemAPI
 
             builder.Services.AddDbContext<BankingContext>(options =>
              options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+            
+            
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+            builder.Services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
+            builder.Services.AddTransient<IEmailSender, EmailSenderService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 

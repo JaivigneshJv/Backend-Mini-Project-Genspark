@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SimpleBankingSystemAPI.Interfaces;
+using SimpleBankingSystemAPI.Interfaces.Services;
 using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
 
 namespace SimpleBankingSystemAPI.Controllers

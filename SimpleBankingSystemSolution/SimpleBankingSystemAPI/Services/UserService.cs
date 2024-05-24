@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.IdentityModel.Tokens;
 using SimpleBankingSystemAPI.Contexts;
-using SimpleBankingSystemAPI.Interfaces;
 using SimpleBankingSystemAPI.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -10,25 +9,33 @@ using Microsoft.EntityFrameworkCore;
 using SimpleBankingSystemAPI.Exceptions;
 using SimpleBankingSystemAPI.Models.DTOs.UserDTOs;
 using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
+using SimpleBankingSystemAPI.Repositories;
+using SimpleBankingSystemAPI.Interfaces.Repositories;
+using SimpleBankingSystemAPI.Interfaces.Services;
 
 namespace SimpleBankingSystemAPI.Services
 {
     public class UserService : IUserService
     {
-        private readonly BankingContext _context;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly IConfiguration _configuration;
+        private readonly IEmailSender _emailService;
+        private readonly IEmailVerificationRepository _emailRepository;
 
-        public UserService(BankingContext context, IMapper mapper, IConfiguration configuration)
+        public UserService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration, IEmailSender emailService,IEmailVerificationRepository emailRepository)
         {
-            _context = context;
+            _userRepository = userRepository;
             _mapper = mapper;
             _configuration = configuration;
+            _emailService = emailService;
+            _emailRepository = emailRepository;
+
         }
 
         public async Task<UserProfileDto> RegisterAsync(RegisterRequest request)
         {
-            if (await _context.Users!.AnyAsync(u => u.Username == request.Username))
+            if (await _userRepository.UserExistsAsync(request.Username!))
                 throw new UserAlreadyExistsException("Username already taken");
 
             CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
@@ -50,15 +57,13 @@ namespace SimpleBankingSystemAPI.Services
                 IsActive = false 
             };
 
-            _context.Users!.Add(user);
-            await _context.SaveChangesAsync();
-
+            await _userRepository.Add(user);
             return _mapper.Map<UserProfileDto>(user);
         }
 
         public async Task<string> LoginAsync(LoginRequest request)
         {
-            var user = await _context.Users!.SingleOrDefaultAsync(u => u.Username == request.Username);
+            var user = await _userRepository.GetUserByUsernameAsync(request.Username!);
 
             if (user == null || !VerifyPasswordHash(request.Password!, user.PasswordHash!, user.PasswordSalt!))
                 throw new InvalidCredentialException("Invalid credentials");
@@ -71,8 +76,8 @@ namespace SimpleBankingSystemAPI.Services
 
         public async Task<UserProfileDto> GetUserAsync(Guid userId)
         {
-            var user = await _context.Users!.FindAsync(userId);
-            if(user == null)
+            var user = await _userRepository.GetById(userId);
+            if (user == null)
                 throw new UserNotFoundException("User not found");
             return _mapper.Map<UserProfileDto>(user);
 
@@ -80,22 +85,20 @@ namespace SimpleBankingSystemAPI.Services
 
         public async Task<UserProfileDto> UpdateUserProfileAsync(Guid userId, UpdateUserProfileRequest request)
         {
-            var user = await _context.Users!.FindAsync(userId);
+            var user = await  _userRepository.GetById(userId);
 
             if (user == null)
                 throw new UserNotFoundException("User not found");
 
             _mapper.Map(request, user);
             user.UpdatedDate = DateTime.UtcNow;
-
-            await _context.SaveChangesAsync();
-
+            await _userRepository.Update(user);
             return _mapper.Map<UserProfileDto>(user);
         }
 
         public async Task UpdateUserPasswordAsync(Guid userId, UpdatePasswordRequest request)
         {
-            var user = await _context.Users!.FindAsync(userId);
+            var user = await _userRepository.GetById(userId);
 
             if (user == null)
                 throw new UserNotFoundException("User not found");
@@ -109,7 +112,54 @@ namespace SimpleBankingSystemAPI.Services
             user.PasswordSalt = passwordSalt;
             user.UpdatedDate = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
+            await _userRepository.Update(user);
+        }
+
+        public async Task RequestEmailUpdateAsync(Guid userId, string newEmail)
+        {
+            var user = await  _userRepository.GetById(userId);
+
+            if (await _userRepository.GetUserByEmailAsync(newEmail) != null)
+                throw new EmailAlreadyExistsException("Email already taken");
+
+            if (await _emailRepository.EmailVerificationExists(userId))
+                throw new EmailVerificationAlreadyExistsException("Email verification already submiited");
+
+            if (user == null)
+                throw new UserNotFoundException("User not found");
+
+            var verificationCode = new Random().Next(100000, 999999).ToString();
+            var emailVerification = new EmailVerification
+            {
+                UserId = userId,
+                NewEmail = newEmail,
+                VerificationCode = verificationCode,
+                RequestDate = DateTime.UtcNow
+            };
+
+            await _emailService.SendEmailAsync(newEmail, "Verify your new email [Change Request]", $"Your verification code is: {verificationCode}");
+            await _emailRepository.Add(emailVerification);
+        }
+
+        public async Task VerifyEmailUpdateAsync(Guid userId, string verificationCode)
+        {
+            var emailVerification = await _emailRepository.GetUserByUserIdAsync(userId);
+
+            if (emailVerification.VerificationCode != verificationCode)
+                throw new InvalidEmailVerificationCode("Invalid verification code");
+
+            if (emailVerification == null)
+                throw new EmailVerificationNotFoundException("Email verification not found");
+
+            var user = await _userRepository.GetById(userId);
+
+            if (user == null)
+                throw new UserNotFoundException("User not found");
+
+            user.Email = emailVerification.NewEmail;
+            user.UpdatedDate = DateTime.UtcNow;
+
+            await _emailRepository.Delete(userId);
         }
 
         #region PasswordHashing
