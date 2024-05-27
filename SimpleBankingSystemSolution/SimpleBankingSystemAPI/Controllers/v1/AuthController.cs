@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SimpleBankingSystemAPI.Interfaces.Services;
 using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
+using System.Security.Claims;
+using WatchDog;
 
 namespace SimpleBankingSystemAPI.Controllers.v1
 {
@@ -62,11 +64,20 @@ namespace SimpleBankingSystemAPI.Controllers.v1
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            if (Request.Cookies["jwt-token-banking-app"] != null)
+            try
             {
-                Response.Cookies.Delete("jwt-token-banking-app");
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (Request.Cookies["jwt-token-banking-app"] != null)
+                {
+                    Response.Cookies.Delete("jwt-token-banking-app");
+                }
+                WatchLogger.Log($"{userId} Logged Out!");
+                return Ok(new { Message = "Logged out successfully." });
             }
-            return Ok(new { Message = "Logged out successfully." });
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

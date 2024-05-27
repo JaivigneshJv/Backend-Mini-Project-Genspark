@@ -24,17 +24,31 @@ namespace SimpleBankingSystemAPI.Controllers.v1
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = await _userService.GetUserAsync(Guid.Parse(userId));
-            return Ok(user);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _userService.GetUserAsync(Guid.Parse(userId));
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateUserProfileRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var profile = await _userService.UpdateUserProfileAsync(new Guid(userId!), request);
-            return Ok(profile);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var profile = await _userService.UpdateUserProfileAsync(new Guid(userId!), request);
+                return Ok(profile);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }

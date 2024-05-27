@@ -12,6 +12,7 @@ using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
 using SimpleBankingSystemAPI.Repositories;
 using SimpleBankingSystemAPI.Interfaces.Repositories;
 using SimpleBankingSystemAPI.Interfaces.Services;
+using WatchDog;
 
 namespace SimpleBankingSystemAPI.Services
 {
@@ -23,167 +24,270 @@ namespace SimpleBankingSystemAPI.Services
         private readonly IEmailSender _emailService;
         private readonly IEmailVerificationRepository _emailRepository;
 
-        public UserService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration, IEmailSender emailService,IEmailVerificationRepository emailRepository)
+        public UserService(IUserRepository userRepository, IMapper mapper, IConfiguration configuration, IEmailSender emailService, IEmailVerificationRepository emailRepository)
         {
             _userRepository = userRepository;
             _mapper = mapper;
             _configuration = configuration;
             _emailService = emailService;
             _emailRepository = emailRepository;
-
         }
 
         public async Task<UserProfileDto> RegisterAsync(RegisterRequest request)
         {
-            if (await _userRepository.UserExistsAsync(request.Username!))
-                throw new UserAlreadyExistsException("Username already taken");
-
-            CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
-
-            var user = new User
+            try
             {
-                Id = Guid.NewGuid(),
-                Username = request.Username,
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
-                Contact = request.Contact,
-                DateOfBirth = request.DateOfBirth,
-                CreatedDate = DateTime.UtcNow,
-                UpdatedDate = DateTime.UtcNow,
-                Role = "User",
-                IsActive = false 
-            };
+                if (await _userRepository.UserExistsAsync(request.Username!))
+                    throw new UserAlreadyExistsException("Username already taken");
 
-            await _userRepository.Add(user);
-            return _mapper.Map<UserProfileDto>(user);
+                CreatePasswordHash(request.Password!, out byte[] passwordHash, out byte[] passwordSalt);
+
+                var user = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Username = request.Username,
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Email = request.Email,
+                    Contact = request.Contact,
+                    DateOfBirth = request.DateOfBirth,
+                    CreatedDate = DateTime.UtcNow,
+                    UpdatedDate = DateTime.UtcNow,
+                    Role = "User",
+                    IsActive = false
+                };
+
+                await _userRepository.Add(user);
+                WatchLogger.Log($"User registered successfully: {user.Username}");
+                return _mapper.Map<UserProfileDto>(user);
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error during user registration: {ex}");
+                throw;
+            }
         }
 
         public async Task<string> LoginAsync(LoginRequest request)
         {
-            var user = await _userRepository.GetUserByUsernameAsync(request.Username!);
+            try
+            {
+                var user = await _userRepository.GetUserByUsernameAsync(request.Username!);
 
-            if (user == null || !VerifyPasswordHash(request.Password!, user.PasswordHash!, user.PasswordSalt!))
-                throw new InvalidCredentialException("Invalid credentials");
+                if (user == null || !VerifyPasswordHash(request.Password!, user.PasswordHash!, user.PasswordSalt!))
+                    throw new InvalidCredentialException("Invalid credentials");
 
-            if (!user.IsActive)
-                throw new UserNotActivatedException("User not activated");
+                if (!user.IsActive)
+                    throw new UserNotActivatedException("User not activated");
 
-            return GenerateJwtToken(user);
+                var token = GenerateJwtToken(user);
+                WatchLogger.Log($"User logged in successfully: {user.Username}");
+                return token;
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error during user login: {ex}");
+                throw;
+            }
         }
 
         public async Task<UserProfileDto> GetUserAsync(Guid userId)
         {
-            var user = await _userRepository.GetById(userId);
-            if (user == null)
-                throw new UserNotFoundException("User not found");
-            return _mapper.Map<UserProfileDto>(user);
+            try
+            {
+                var user = await _userRepository.GetById(userId);
+                if (user == null)
+                    throw new UserNotFoundException("User not found");
 
+                WatchLogger.Log($"Fetched user profile: {userId}");
+                return _mapper.Map<UserProfileDto>(user);
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error fetching user profile: {ex}");
+                throw;
+            }
         }
 
         public async Task<UserProfileDto> UpdateUserProfileAsync(Guid userId, UpdateUserProfileRequest request)
         {
-            var user = await  _userRepository.GetById(userId);
+            try
+            {
+                var user = await _userRepository.GetById(userId);
 
-            if (user == null)
-                throw new UserNotFoundException("User not found");
+                if (user == null)
+                    throw new UserNotFoundException("User not found");
 
-            _mapper.Map(request, user);
-            user.UpdatedDate = DateTime.UtcNow;
-            await _userRepository.Update(user);
-            return _mapper.Map<UserProfileDto>(user);
+                _mapper.Map(request, user);
+                user.UpdatedDate = DateTime.UtcNow;
+                await _userRepository.Update(user);
+                WatchLogger.Log($"User profile updated: {userId}");
+                return _mapper.Map<UserProfileDto>(user);
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error updating user profile: {ex}");
+                throw;
+            }
         }
 
         public async Task UpdateUserPasswordAsync(Guid userId, UpdatePasswordRequest request)
         {
-            var user = await _userRepository.GetById(userId);
+            try
+            {
+                var user = await _userRepository.GetById(userId);
 
-            if (user == null)
-                throw new UserNotFoundException("User not found");
+                if (user == null)
+                    throw new UserNotFoundException("User not found");
 
-            if (!VerifyPasswordHash(request.OldPassword!, user.PasswordHash!, user.PasswordSalt!))
-                throw new InvalidCredentialException("Old password is incorrect");
+                if (!VerifyPasswordHash(request.OldPassword!, user.PasswordHash!, user.PasswordSalt!))
+                    throw new InvalidCredentialException("Old password is incorrect");
 
-            CreatePasswordHash(request.NewPassword!, out byte[] passwordHash, out byte[] passwordSalt);
+                CreatePasswordHash(request.NewPassword!, out byte[] passwordHash, out byte[] passwordSalt);
 
-            user.PasswordHash = passwordHash;
-            user.PasswordSalt = passwordSalt;
-            user.UpdatedDate = DateTime.UtcNow;
+                user.PasswordHash = passwordHash;
+                user.PasswordSalt = passwordSalt;
+                user.UpdatedDate = DateTime.UtcNow;
 
-            await _userRepository.Update(user);
+                await _userRepository.Update(user);
+                WatchLogger.Log($"User password updated: {userId}");
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error updating user password: {ex}");
+                throw;
+            }
         }
 
         public async Task RequestEmailUpdateAsync(Guid userId, string newEmail)
         {
-            var user = await  _userRepository.GetById(userId);
-
-            if (await _userRepository.GetUserByEmailAsync(newEmail) != null)
-                throw new EmailAlreadyExistsException("Email already taken");
-
-            if (await _emailRepository.EmailVerificationExists(userId))
-                throw new EmailVerificationAlreadyExistsException("Email verification already submiited");
-
-            if (user == null)
-                throw new UserNotFoundException("User not found");
-
-            var verificationCode = new Random().Next(100000, 999999).ToString();
-            var emailVerification = new EmailVerification
+            try
             {
-                UserId = userId,
-                NewEmail = newEmail,
-                VerificationCode = verificationCode,
-                RequestDate = DateTime.UtcNow
-            };
+                var user = await _userRepository.GetById(userId);
 
-            await _emailService.SendEmailAsync(newEmail, "Verify your new email [Change Request]", $"Your verification code is: {verificationCode}");
-            await _emailRepository.Add(emailVerification);
+                if (await _userRepository.GetUserByEmailAsync(newEmail) != null)
+                    throw new EmailAlreadyExistsException("Email already taken");
+
+                if (await _emailRepository.EmailVerificationExists(userId))
+                    throw new EmailVerificationAlreadyExistsException("Email verification already submitted");
+
+                if (user == null)
+                    throw new UserNotFoundException("User not found");
+
+                var verificationCode = new Random().Next(100000, 999999).ToString();
+                var emailVerification = new EmailVerification
+                {
+                    UserId = userId,
+                    NewEmail = newEmail,
+                    VerificationCode = verificationCode,
+                    RequestDate = DateTime.UtcNow
+                };
+
+                await _emailService.SendEmailAsync(newEmail, "Verify your new email [Change Request]", $"Your verification code is: {verificationCode}");
+                await _emailRepository.Add(emailVerification);
+                WatchLogger.Log($"Email update requested for user: {userId}");
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error requesting email update: {ex}");
+                throw;
+            }
         }
 
         public async Task VerifyEmailUpdateAsync(Guid userId, string verificationCode)
         {
-            var emailVerification = await _emailRepository.GetUserByUserIdAsync(userId);
+            try
+            {
+                var emailVerification = await _emailRepository.GetUserByUserIdAsync(userId);
 
-            if (emailVerification.VerificationCode != verificationCode)
-                throw new InvalidEmailVerificationCode("Invalid verification code");
+                if (emailVerification.VerificationCode != verificationCode)
+                    throw new InvalidEmailVerificationCode("Invalid verification code");
 
-            if (emailVerification == null)
-                throw new EmailVerificationNotFoundException("Email verification not found");
+                if (emailVerification == null)
+                    throw new EmailVerificationNotFoundException("Email verification not found");
 
-            var user = await _userRepository.GetById(userId);
+                var user = await _userRepository.GetById(userId);
 
-            if (user == null)
-                throw new UserNotFoundException("User not found");
+                if (user == null)
+                    throw new UserNotFoundException("User not found");
 
-            user.Email = emailVerification.NewEmail;
-            user.UpdatedDate = DateTime.UtcNow;
+                user.Email = emailVerification.NewEmail;
+                user.UpdatedDate = DateTime.UtcNow;
 
-            await _emailRepository.Delete(userId);
+                await _emailRepository.Delete(userId);
+                WatchLogger.Log($"Email updated for user: {userId}");
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error verifying email update: {ex}");
+                throw;
+            }
         }
 
         public async Task<IEnumerable<UserProfileDto>> GetAllAsync()
         {
-            var users = await _userRepository.GetAll();
-            return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+            try
+            {
+                var users = await _userRepository.GetAll();
+                WatchLogger.Log("Fetched all users");
+                return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error fetching all users: {ex}");
+                throw;
+            }
         }
+
         public async Task<IEnumerable<UserProfileDto>> GetAllInActiveUsersAsync()
         {
-            var users = await _userRepository.GetAllInActiveUsers();
-            return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+            try
+            {
+                var users = await _userRepository.GetAllInActiveUsers();
+                WatchLogger.Log("Fetched all inactive users");
+                return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error fetching inactive users: {ex}");
+                throw;
+            }
         }
-        public async Task <IEnumerable<UserProfileDto>> GetAllActiveUsersAsync()
+
+        public async Task<IEnumerable<UserProfileDto>> GetAllActiveUsersAsync()
         {
-            var users = await _userRepository.GetAllActiveUsers();
-            return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+            try
+            {
+                var users = await _userRepository.GetAllActiveUsers();
+                WatchLogger.Log("Fetched all active users");
+                return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error fetching active users: {ex}");
+                throw;
+            }
         }
+
         public async Task ActivateUser(Guid userId)
         {
-            var user = await _userRepository.GetById(userId);
-            if (user == null)
-                throw new UserNotFoundException("User not found");
-            user.IsActive = true;
-            await _userRepository.Update(user);
+            try
+            {
+                var user = await _userRepository.GetById(userId);
+                if (user == null)
+                    throw new UserNotFoundException("User not found");
+
+                user.IsActive = true;
+                await _userRepository.Update(user);
+                WatchLogger.Log($"User activated: {userId}");
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error activating user: {ex}");
+                throw;
+            }
         }
 
         #region PasswordHashing

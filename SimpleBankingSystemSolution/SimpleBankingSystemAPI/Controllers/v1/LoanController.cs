@@ -16,35 +16,67 @@ namespace SimpleBankingSystemAPI.Controllers.v1
         {
             _loanServices = loanServices;
         }
+
         [HttpPost("get-loan-details")]
         public IActionResult GetLoanDetails(InterestRequest request)
         {
-            var loanDetails = _loanServices.GetLoanDetails(request);
-            return Ok(loanDetails);
+            try
+            {
+                var loanDetails = _loanServices.GetLoanDetails(request);
+                return Ok(loanDetails);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
+
         [Authorize]
         [HttpPost("apply-loan")]
         public async Task<IActionResult> ApplyLoan(LoanRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var loan = await _loanServices.ApplyLoan(Guid.Parse(userId)!, request);
-            return Ok(loan);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var loan = await _loanServices.ApplyLoan(Guid.Parse(userId)!, request);
+                return Ok(loan);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
+
         [Authorize]
         [HttpGet("get-all-account-loans/{accountId}")]
         public async Task<IActionResult> GetallAccountLoans(Guid accountId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var loans = await _loanServices.GetallAccountLoans(Guid.Parse(userId)!, accountId);
-            return Ok(loans);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var loans = await _loanServices.GetallAccountLoans(Guid.Parse(userId)!, accountId);
+                return Ok(loans);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
+
         [Authorize]
         [HttpPost("repay-loan/{loanId}")]
         public async Task<IActionResult> RepayLoan(Guid loanId, LoanRepaymentDto request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var loanRepayment = await _loanServices.RepayLoanRequest(Guid.Parse(userId)!, loanId, request);
-            return Ok(loanRepayment);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var loanRepayment = await _loanServices.RepayLoanRequest(Guid.Parse(userId)!, loanId, request);
+                return Ok(loanRepayment);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
     }
 }

@@ -11,6 +11,7 @@ using SimpleBankingSystemAPI.Repositories;
 using SimpleBankingSystemAPI.Services;
 using System.Text;
 using WatchDog;
+using WatchDog.src.Models;
 
 namespace SimpleBankingSystemAPI
 {
@@ -41,7 +42,12 @@ namespace SimpleBankingSystemAPI
                 option.AddSecurityRequirement(new OpenApiSecurityRequirement { { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, new string[] { } } });
             });
 
-            builder.Services.AddWatchDogServices();
+            //WatchDog - https://www.youtube.com/watch?v=LO-QKMHK5ps&ab_channel=MohamadLawand
+            builder.Services.AddWatchDogServices(opt =>
+            {
+                opt.SetExternalDbConnString = builder.Configuration.GetConnectionString("WatchManConnection");
+                opt.DbDriverOption = WatchDog.src.Enums.WatchDogDbDriverEnum.MSSQL;
+            });
 
             builder.Services.AddDbContext<BankingContext>(options =>
              options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -122,6 +128,16 @@ namespace SimpleBankingSystemAPI
 
 
             app.MapControllers();
+
+            // inject middleware for WatchDog
+            app.UseWatchDogExceptionLogger();
+
+            var watchdogCredentials = builder.Configuration.GetSection("WatchDog");
+            app.UseWatchDog(opt =>
+            {
+                opt.WatchPageUsername = watchdogCredentials["username"];
+                opt.WatchPagePassword = watchdogCredentials["password"];
+            });
 
             app.Run();
             #endregion

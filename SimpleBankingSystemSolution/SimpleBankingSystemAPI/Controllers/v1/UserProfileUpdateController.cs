@@ -25,35 +25,56 @@ namespace SimpleBankingSystemAPI.Controllers.v1
         [HttpPut("update-password")]
         public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordRequest request)
         {
-            if (request.OldPassword == request.NewPassword)
+            try
             {
-                throw new SamePasswordException("New password and Old password can't be the same");
+                if (request.OldPassword == request.NewPassword)
+                {
+                    throw new SamePasswordException("New password and Old password can't be the same");
+                }
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                await _userService.UpdateUserPasswordAsync(new Guid(userId!), request);
+                if (Request.Cookies["jwt-token-banking-app"] != null)
+                {
+                    Response.Cookies.Delete("jwt-token-banking-app");
+                }
+                return Ok(new { Message = "Password Changed successfully." });
             }
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await _userService.UpdateUserPasswordAsync(new Guid(userId!), request);
-            if (Request.Cookies["jwt-token-banking-app"] != null)
+            catch (SamePasswordException ex)
             {
-                Response.Cookies.Delete("jwt-token-banking-app");
+                return BadRequest(new { Error = ex.Message });
             }
-            return Ok(new { Message = "Password Changed successfully." });
         }
 
         [Authorize]
         [HttpPut("email/request-update")]
         public async Task<IActionResult> RequestEmailUpdate([FromBody] RequestEmailUpdate request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await _userService.RequestEmailUpdateAsync(new Guid(userId!), request.NewEmail!);
-            return Ok(new { Message = "Email update requested. Please check your new email for the verification code." });
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                await _userService.RequestEmailUpdateAsync(new Guid(userId!), request.NewEmail!);
+                return Ok(new { Message = "Email update requested. Please check your new email for the verification code." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = ex.Message });
+            }
         }
 
         [Authorize]
         [HttpPut("email/verify-update")]
         public async Task<IActionResult> VerifyEmailUpdate([FromBody] VerifyEmailRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await _userService.VerifyEmailUpdateAsync(new Guid(userId!), request.VerificationCode!);
-            return Ok(new { Message = "Email updated successfully." });
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                await _userService.VerifyEmailUpdateAsync(new Guid(userId!), request.VerificationCode!);
+                return Ok(new { Message = "Email updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Error = ex.Message });
+            }
         }
     }
 
