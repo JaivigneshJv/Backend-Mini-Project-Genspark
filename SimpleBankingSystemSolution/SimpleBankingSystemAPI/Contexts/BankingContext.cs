@@ -10,11 +10,13 @@ namespace SimpleBankingSystemAPI.Contexts
         public DbSet<User>? Users { get; set; }
         public DbSet<Account>? Accounts { get; set; }
         public DbSet<Transaction>? Transactions { get; set; }
-        public DbSet<TransactionType>? TransactionTypes { get; set; }
         public DbSet<Loan>? Loans { get; set; }
         public DbSet<LoanRepayment>? LoanRepayments { get; set; }
         public DbSet<EmailVerification> EmailVerifications { get; set; }
         public DbSet<PendingUserProfileUpdate> PendingUserProfileUpdates { get; set; }
+        public DbSet<TransactionVerification> TransactionVerifications { get; set; }
+        public DbSet<PendingAccountClosing> PendingAccountClosing { get; set; }
+        public DbSet<PendingAccountTransaction> PendingAccountTransactions { get; set; }
         public object Customers { get; internal set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -31,12 +33,6 @@ namespace SimpleBankingSystemAPI.Contexts
                 .HasOne(t => t.Receiver)
                 .WithMany()
                 .HasForeignKey(t => t.ReceiverId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Transaction>()
-                .HasOne(t => t.TransactionType)
-                .WithMany(tt => tt.Transactions)
-                .HasForeignKey(t => t.TransactionTypeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Loan>()

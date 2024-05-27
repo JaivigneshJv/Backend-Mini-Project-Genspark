@@ -162,6 +162,30 @@ namespace SimpleBankingSystemAPI.Services
             await _emailRepository.Delete(userId);
         }
 
+        public async Task<IEnumerable<UserProfileDto>> GetAllAsync()
+        {
+            var users = await _userRepository.GetAll();
+            return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+        }
+        public async Task<IEnumerable<UserProfileDto>> GetAllInActiveUsersAsync()
+        {
+            var users = await _userRepository.GetAllInActiveUsers();
+            return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+        }
+        public async Task <IEnumerable<UserProfileDto>> GetAllActiveUsersAsync()
+        {
+            var users = await _userRepository.GetAllActiveUsers();
+            return _mapper.Map<IEnumerable<UserProfileDto>>(users);
+        }
+        public async Task ActivateUser(Guid userId)
+        {
+            var user = await _userRepository.GetById(userId);
+            if (user == null)
+                throw new UserNotFoundException("User not found");
+            user.IsActive = true;
+            await _userRepository.Update(user);
+        }
+
         #region PasswordHashing
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {

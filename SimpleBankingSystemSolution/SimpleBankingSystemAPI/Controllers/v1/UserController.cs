@@ -6,9 +6,9 @@ using SimpleBankingSystemAPI.Exceptions;
 using SimpleBankingSystemAPI.Models.DTOs.UserDTOs.EmailDTOs;
 using SimpleBankingSystemAPI.Interfaces.Services;
 
-namespace SimpleBankingSystemAPI.Controllers
+namespace SimpleBankingSystemAPI.Controllers.v1
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {

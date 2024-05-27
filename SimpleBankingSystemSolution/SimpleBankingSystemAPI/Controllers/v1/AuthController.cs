@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using SimpleBankingSystemAPI.Interfaces.Services;
 using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
 
-namespace SimpleBankingSystemAPI.Controllers
+namespace SimpleBankingSystemAPI.Controllers.v1
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
@@ -25,7 +25,11 @@ namespace SimpleBankingSystemAPI.Controllers
             try
             {
                 var userDto = await _userService.RegisterAsync(request);
-                return Ok(userDto);
+                return Ok(new
+                {
+                    message = "New User Register Request Has Been Created!",
+                    user = userDto
+                });
             }
             catch (Exception ex)
             {

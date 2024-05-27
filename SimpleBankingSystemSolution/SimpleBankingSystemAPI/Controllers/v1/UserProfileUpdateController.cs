@@ -6,9 +6,9 @@ using SimpleBankingSystemAPI.Models.DTOs.UserDTOs;
 using System.Security.Claims;
 using SimpleBankingSystemAPI.Interfaces.Services;
 
-namespace SimpleBankingSystemAPI.Controllers
+namespace SimpleBankingSystemAPI.Controllers.v1
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class UserProfileUpdateController : ControllerBase
     {

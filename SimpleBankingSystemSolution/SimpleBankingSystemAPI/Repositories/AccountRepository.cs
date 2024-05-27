@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SimpleBankingSystemAPI.Contexts;
-using SimpleBankingSystemAPI.Interfaces.Services;
+using SimpleBankingSystemAPI.Interfaces.Repositories;
 using SimpleBankingSystemAPI.Models;
 
 namespace SimpleBankingSystemAPI.Repositories

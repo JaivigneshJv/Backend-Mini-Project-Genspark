@@ -18,7 +18,6 @@ namespace SimpleBankingSystemAPI.Repositories
         {
             return await _context.Users.SingleOrDefaultAsync(u => u.Username == username);
         }
-
         public async Task<bool> UserExistsAsync(string username)
         {
             return await _context.Users.AnyAsync(u => u.Username == username);
@@ -26,6 +25,14 @@ namespace SimpleBankingSystemAPI.Repositories
         public async Task<User> GetUserByEmailAsync(string email)
         {
             return await _context.Users.SingleOrDefaultAsync(u => u.Email == email);
+        }
+        public async Task<IEnumerable<User>> GetAllInActiveUsers()
+        {
+            return await _context.Users.Where(u => u.IsActive == false).ToListAsync();
+        }
+        public async Task<IEnumerable<User>> GetAllActiveUsers()
+        {
+            return await _context.Users.Where(u => u.IsActive == true).ToListAsync();
         }
     }
 }

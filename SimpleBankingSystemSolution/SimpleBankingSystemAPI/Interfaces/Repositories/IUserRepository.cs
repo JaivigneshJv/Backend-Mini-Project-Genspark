@@ -7,5 +7,7 @@ namespace SimpleBankingSystemAPI.Interfaces.Repositories
         Task<User> GetUserByUsernameAsync(string username);
         Task<User> GetUserByEmailAsync(string email);
         Task<bool> UserExistsAsync(string username);
+        Task<IEnumerable<User>> GetAllInActiveUsers();
+        Task<IEnumerable<User>> GetAllActiveUsers();
     }
 }

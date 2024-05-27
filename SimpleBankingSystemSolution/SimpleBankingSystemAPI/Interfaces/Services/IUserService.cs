@@ -11,5 +11,9 @@ namespace SimpleBankingSystemAPI.Interfaces.Services
         Task UpdateUserPasswordAsync(Guid userId, UpdatePasswordRequest request);
         Task RequestEmailUpdateAsync(Guid userId, string newEmail);
         Task VerifyEmailUpdateAsync(Guid userId, string verificationCode);
+        Task <IEnumerable<UserProfileDto>> GetAllAsync();
+        Task <IEnumerable <UserProfileDto>> GetAllInActiveUsersAsync();
+        Task<IEnumerable<UserProfileDto>> GetAllActiveUsersAsync();
+        Task ActivateUser(Guid userId);
     }
 }

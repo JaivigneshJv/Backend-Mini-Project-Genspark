@@ -18,7 +18,7 @@ namespace SimpleBankingSystemAPI.Models
         public decimal Amount { get; set; }
 
         [Required]
-        public Guid TransactionTypeId { get; set; }
+        public string? TransactionType { get; set; } 
 
         [Required]
         public DateTime Timestamp { get; set; }
@@ -35,7 +35,6 @@ namespace SimpleBankingSystemAPI.Models
         [ForeignKey("ReceiverId")]
         public Account? Receiver { get; set; }
 
-        [ForeignKey("TransactionTypeId")]
-        public TransactionType? TransactionType { get; set; }
+        
     }
 }

@@ -39,6 +39,12 @@ namespace SimpleBankingSystemAPI.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<byte[]>("TransactionPasswordHash")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<byte[]>("TransactionPasswordKey")
+                        .HasColumnType("varbinary(max)");
+
                     b.Property<DateTime>("UpdatedDate")
                         .HasColumnType("datetime2");
 
@@ -141,6 +147,74 @@ namespace SimpleBankingSystemAPI.Migrations
                     b.ToTable("LoanRepayments");
                 });
 
+            modelBuilder.Entity("SimpleBankingSystemAPI.Models.PendingAccountClosing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRejected")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("RequestDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("PendingAccountClosing");
+                });
+
+            modelBuilder.Entity("SimpleBankingSystemAPI.Models.PendingAccountTransaction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRejected")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("PendingAccountTransactions");
+                });
+
             modelBuilder.Entity("SimpleBankingSystemAPI.Models.PendingUserProfileUpdate", b =>
                 {
                     b.Property<Guid>("Id")
@@ -206,8 +280,9 @@ namespace SimpleBankingSystemAPI.Migrations
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("TransactionTypeId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("TransactionType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -215,28 +290,40 @@ namespace SimpleBankingSystemAPI.Migrations
 
                     b.HasIndex("ReceiverId");
 
-                    b.HasIndex("TransactionTypeId");
-
                     b.ToTable("Transactions");
                 });
 
-            modelBuilder.Entity("SimpleBankingSystemAPI.Models.TransactionType", b =>
+            modelBuilder.Entity("SimpleBankingSystemAPI.Models.TransactionVerification", b =>
                 {
-                    b.Property<Guid>("TransactionTypeId")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("RaiseRequest")
-                        .HasColumnType("bit");
+                    b.Property<Guid>("AccountId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("TypeName")
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<Guid>("ReceiverId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TransactionType")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("TransactionTypeId");
+                    b.Property<string>("VerificationCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("TransactionTypes");
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.ToTable("TransactionVerifications");
                 });
 
             modelBuilder.Entity("SimpleBankingSystemAPI.Models.User", b =>
@@ -302,18 +389,18 @@ namespace SimpleBankingSystemAPI.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("63e93a0c-6018-47e7-a205-9e5b3fa647e1"),
+                            Id = new Guid("1768a861-c2ca-446a-a020-428b7eb481b5"),
                             Contact = "1234567890",
-                            CreatedDate = new DateTime(2024, 5, 24, 7, 34, 16, 597, DateTimeKind.Utc).AddTicks(1321),
+                            CreatedDate = new DateTime(2024, 5, 25, 7, 44, 31, 222, DateTimeKind.Utc).AddTicks(4366),
                             DateOfBirth = new DateTime(2002, 10, 11, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             Email = "adminuser@simplebank.com",
                             FirstName = "Admin",
                             IsActive = true,
                             LastName = "User",
-                            PasswordHash = new byte[] { 31, 53, 184, 26, 55, 78, 127, 190, 249, 120, 191, 241, 0, 209, 154, 5, 225, 56, 245, 68, 148, 248, 78, 56, 22, 194, 0, 3, 204, 4, 102, 227, 249, 70, 239, 187, 138, 154, 214, 40, 50, 94, 42, 89, 51, 82, 223, 170, 224, 2, 230, 192, 46, 234, 184, 21, 80, 11, 115, 139, 66, 69, 31, 228, 204, 230, 73, 214, 117, 18, 245, 95, 168, 153, 221, 217, 91, 138, 113, 57, 81, 89, 60, 227, 18, 159, 100, 145, 245, 115, 154, 16, 184, 105, 39, 155, 194, 134, 8, 169, 153, 224, 138, 183, 98, 125, 68, 114, 84, 216, 48, 221, 109, 89, 193, 29, 220, 170, 163, 139, 185, 96, 204, 184, 174, 160, 94, 155 },
-                            PasswordSalt = new byte[] { 134, 249, 67, 223, 106, 233, 237, 237, 22, 139, 96, 8, 115, 117, 97, 163, 238, 235, 86, 10, 53, 169, 153, 243, 196, 130, 74, 157, 23, 64, 29, 20, 47, 97, 98, 125, 152, 102, 181, 182, 209, 42, 193, 40, 222, 241, 43, 69, 19, 147, 66, 149, 155, 193, 146, 235, 130, 204, 162, 7, 8, 252, 70, 231 },
+                            PasswordHash = new byte[] { 132, 199, 28, 180, 124, 10, 1, 42, 131, 97, 81, 118, 234, 172, 75, 18, 152, 114, 108, 169, 104, 32, 1, 39, 241, 71, 221, 93, 136, 20, 31, 205, 223, 32, 132, 1, 101, 215, 18, 20, 25, 111, 101, 232, 173, 4, 54, 112, 118, 163, 39, 24, 245, 77, 181, 131, 166, 22, 134, 172, 114, 237, 48, 189, 178, 180, 240, 212, 91, 102, 76, 94, 249, 36, 230, 14, 229, 206, 68, 35, 58, 104, 31, 159, 18, 58, 137, 31, 194, 40, 110, 138, 209, 245, 37, 230, 151, 26, 197, 95, 31, 46, 179, 228, 98, 35, 132, 110, 35, 190, 229, 88, 23, 169, 74, 180, 242, 193, 134, 157, 20, 220, 189, 239, 5, 195, 225, 206 },
+                            PasswordSalt = new byte[] { 188, 142, 55, 216, 140, 3, 222, 66, 50, 195, 59, 34, 4, 149, 251, 144, 100, 187, 220, 201, 87, 196, 101, 137, 149, 212, 152, 59, 27, 47, 110, 232, 140, 20, 42, 215, 81, 226, 181, 5, 254, 241, 130, 16, 55, 251, 24, 10, 134, 165, 136, 226, 37, 227, 50, 28, 242, 82, 101, 82, 237, 105, 137, 183 },
                             Role = "Admin",
-                            UpdatedDate = new DateTime(2024, 5, 24, 7, 34, 16, 597, DateTimeKind.Utc).AddTicks(1323),
+                            UpdatedDate = new DateTime(2024, 5, 25, 7, 44, 31, 222, DateTimeKind.Utc).AddTicks(4368),
                             Username = "Admin"
                         });
                 });
@@ -362,6 +449,28 @@ namespace SimpleBankingSystemAPI.Migrations
                     b.Navigation("Loan");
                 });
 
+            modelBuilder.Entity("SimpleBankingSystemAPI.Models.PendingAccountClosing", b =>
+                {
+                    b.HasOne("SimpleBankingSystemAPI.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
+            modelBuilder.Entity("SimpleBankingSystemAPI.Models.PendingAccountTransaction", b =>
+                {
+                    b.HasOne("SimpleBankingSystemAPI.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
+                });
+
             modelBuilder.Entity("SimpleBankingSystemAPI.Models.PendingUserProfileUpdate", b =>
                 {
                     b.HasOne("SimpleBankingSystemAPI.Models.User", "User")
@@ -387,17 +496,20 @@ namespace SimpleBankingSystemAPI.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SimpleBankingSystemAPI.Models.TransactionType", "TransactionType")
-                        .WithMany("Transactions")
-                        .HasForeignKey("TransactionTypeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Account");
 
                     b.Navigation("Receiver");
+                });
 
-                    b.Navigation("TransactionType");
+            modelBuilder.Entity("SimpleBankingSystemAPI.Models.TransactionVerification", b =>
+                {
+                    b.HasOne("SimpleBankingSystemAPI.Models.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Account");
                 });
 
             modelBuilder.Entity("SimpleBankingSystemAPI.Models.Account", b =>
@@ -410,11 +522,6 @@ namespace SimpleBankingSystemAPI.Migrations
             modelBuilder.Entity("SimpleBankingSystemAPI.Models.Loan", b =>
                 {
                     b.Navigation("LoanRepayments");
-                });
-
-            modelBuilder.Entity("SimpleBankingSystemAPI.Models.TransactionType", b =>
-                {
-                    b.Navigation("Transactions");
                 });
 
             modelBuilder.Entity("SimpleBankingSystemAPI.Models.User", b =>

@@ -6,9 +6,11 @@ using SimpleBankingSystemAPI.Contexts;
 using SimpleBankingSystemAPI.Interfaces.Repositories;
 using SimpleBankingSystemAPI.Interfaces.Services;
 using SimpleBankingSystemAPI.Mappings;
+using SimpleBankingSystemAPI.Models;
 using SimpleBankingSystemAPI.Repositories;
 using SimpleBankingSystemAPI.Services;
 using System.Text;
+using WatchDog;
 
 namespace SimpleBankingSystemAPI
 {
@@ -24,6 +26,7 @@ namespace SimpleBankingSystemAPI
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
+            builder.Services.AddLogging(l => l.AddLog4Net());
             builder.Services.AddSwaggerGen(option =>
             {
                 option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
@@ -38,15 +41,36 @@ namespace SimpleBankingSystemAPI
                 option.AddSecurityRequirement(new OpenApiSecurityRequirement { { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, new string[] { } } });
             });
 
+            builder.Services.AddWatchDogServices();
+
             builder.Services.AddDbContext<BankingContext>(options =>
              options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
             
             
             builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<IUserService, UserService>();
+
             builder.Services.AddScoped<IAccountRepository, AccountRepository>();
+            builder.Services.AddScoped<IAccountService, AccountService>();
+
+            builder.Services.AddScoped<ITransactionRepository, TransactionRepository>();
+            builder.Services.AddScoped<ITransactionService, TransactionService>();
+
+            builder.Services.AddScoped<ITransactionVerificationRepository, TransactionVerificationRepository>();
+
+            builder.Services.AddScoped<IPendingAccountClosingRepository, PendingAccountClosingRepository>();
+
+            builder.Services.AddScoped<IPendingAccountTransactionRepository, PendingAccountTransactionRepository>();
+
+            builder.Services.AddScoped<ILoanRepository, LoanRepository>();
+            builder.Services.AddScoped<ILoanServices, LoanService>();
+
+            builder.Services.AddScoped<ILoanRepaymentRepository, LoanRepaymentRepository>();
+
             builder.Services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
             builder.Services.AddTransient<IEmailSender, EmailSenderService>();
-            builder.Services.AddScoped<IUserService, UserService>();
+
+
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
