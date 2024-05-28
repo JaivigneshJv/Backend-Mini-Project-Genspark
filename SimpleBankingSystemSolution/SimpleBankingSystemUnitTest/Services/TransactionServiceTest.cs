@@ -189,5 +189,62 @@ namespace SimpleBankingSystemAPI.Tests
             // Act & Assert
             Assert.ThrowsAsync<InvalidVerificationCodeException>(() => _transactionService.TransferVerificationAsync(userId, accountId, verificationCode));
         }
+       
+
+        [Test]
+        public void GetTransactionsAsync_WhenInvalidRequest_ShouldThrowException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+
+            _transactionRepositoryMock.Setup(repo => repo.GetTransactionsByAccountIdAsync(accountId)).Throws(new Exception());
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _transactionService.GetTransactionsAsync(userId, accountId));
+        }
+
+        [Test]
+        public async Task GetTransactionByAccountAsync_ValidRequest_ShouldReturnTransactions()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var transactions = new List<Transaction> { new Transaction { AccountId = accountId } };
+
+            _transactionRepositoryMock.Setup(repo => repo.GetTransactionsByAccountIdAsync(accountId)).ReturnsAsync(transactions);
+
+            // Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _transactionService.GetTransactionByAccountAsync(userId, accountId));
+        }
+
+        [Test]
+        public void GetTransactionByAccountAsync_WhenInvalidRequest_ShouldThrowException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+
+            _transactionRepositoryMock.Setup(repo => repo.GetTransactionsByAccountIdAsync(accountId)).Throws(new Exception());
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _transactionService.GetTransactionByAccountAsync(userId, accountId));
+        }
+
+        [Test]
+        public async Task GetTransactionRequestAsync_ValidRequest_ShouldReturnTransactions()
+        {
+            // Arrange
+            var transactions = new List<Transaction> { new Transaction { } };
+
+            _transactionRepositoryMock.Setup(repo => repo.GetAll()).ReturnsAsync(transactions);
+
+            // Act
+            var result = await _transactionService.GetTransactionRequestAsync();
+
+            // Assert
+            Assert.IsEmpty(result);
+        }
+
     }
 }
