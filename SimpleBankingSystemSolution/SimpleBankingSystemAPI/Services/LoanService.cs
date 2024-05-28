@@ -34,6 +34,11 @@ namespace SimpleBankingSystemAPI.Services
             _emailService = emailService;
         }
 
+        /// <summary>
+        /// Calculates the final amount and interest rate for a loan based on the provided request.
+        /// </summary>
+        /// <param name="request">The interest request containing the loan amount, applied date, and target date.</param>
+        /// <returns>The calculated loan details.</returns>
         public LoanDetails GetLoanDetails(InterestRequest request)
         {
             try
@@ -53,7 +58,12 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
-
+        /// <summary>
+        /// Applies for a loan for the specified user.
+        /// </summary>
+        /// <param name="userId">The ID of the user applying for the loan.</param>
+        /// <param name="request">The loan request containing the account ID, amount, applied date, and target date.</param>
+        /// <returns>The applied loan request.</returns>
         public async Task<LoanRequest> ApplyLoan(Guid userId, LoanRequest request)
         {
             try
@@ -95,7 +105,13 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
-
+        /// <summary>
+        /// Calculates the pending amount for a loan.
+        /// </summary>
+        /// <param name="amount">The loan amount.</param>
+        /// <param name="start">The start date of the loan.</param>
+        /// <param name="end">The end date of the loan.</param>
+        /// <returns>The calculated pending amount.</returns>
         private decimal PendingAmountCalculator(decimal amount, DateTime start, DateTime end)
         {
             try
@@ -125,7 +141,12 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
-
+        /// <summary>
+        /// Gets all loans for a specific account.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="accountId">The ID of the account.</param>
+        /// <returns>A list of all loans for the account.</returns>
         public async Task<IEnumerable<LoanDto>> GetallAccountLoans(Guid userId, Guid accountId)
         {
             try
@@ -154,6 +175,13 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Processes a loan repayment request.
+        /// </summary>
+        /// <param name="userId">The ID of the user making the repayment.</param>
+        /// <param name="loanId">The ID of the loan to be repaid.</param>
+        /// <param name="request">The loan repayment request containing the repayment amount and payment date.</param>
+        /// <returns>The processed loan repayment request.</returns>
         public async Task<LoanRepaymentDto> RepayLoanRequest(Guid userId, Guid loanId, LoanRepaymentDto request)
         {
             try
@@ -236,7 +264,10 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
-
+        /// <summary>
+        /// Gets all pending loans.
+        /// </summary>
+        /// <returns>A list of all pending loans.</returns>
         public async Task<IEnumerable<LoanDto>> GetAllPendingLoansAsync()
         {
             try
@@ -252,6 +283,10 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Approves a loan.
+        /// </summary>
+        /// <param name="loanId">The ID of the loan to be approved.</param>
         public async Task ApproveLoanAsync(Guid loanId)
         {
             try
@@ -273,7 +308,10 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
-
+        /// <summary>
+        /// Rejects a loan.
+        /// </summary>
+        /// <param name="loanId">The ID of the loan to be rejected.</param>
         public async Task RejectLoanAsync(Guid loanId)
         {
             try
@@ -290,7 +328,10 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
-
+        /// <summary>
+        /// Gets all rejected loans.
+        /// </summary>
+        /// <returns>A list of all rejected loans.</returns>
         public async Task<IEnumerable<LoanDto>> GetAllRejectedLoansAsync()
         {
             try
@@ -306,6 +347,10 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Gets all opened loans.
+        /// </summary>
+        /// <returns>A list of all opened loans.</returns>
         public async Task<IEnumerable<LoanDto>> GetAllOpenedLoansAsync()
         {
             try
@@ -320,7 +365,10 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
-
+        /// <summary>
+        /// Gets all closed loans.
+        /// </summary>
+        /// <returns>A list of all closed loans.</returns>
         public async Task<IEnumerable<LoanDto>> GetAllClosedLoansAsync()
         {
             try
@@ -332,6 +380,43 @@ namespace SimpleBankingSystemAPI.Services
             catch (Exception ex)
             {
                 WatchLogger.LogError($"Error fetching all closed loans: {ex}");
+                throw;
+            }
+        }
+        /// <summary>
+        /// Gets all repayments for a specific loan.
+        /// </summary>
+        /// <param name="loanId">The ID of the loan.</param>
+        /// <returns>A list of all repayments for the loan.</returns>
+        public async Task<IEnumerable<LoanRepaymentDto>> GetLoanRepayments(Guid loanId)
+        {
+            try
+            {
+                var loanrepayments = await _loanRepaymentRepository.GetLoanRepaymentsByLoanId(loanId);
+                return _mapper.Map<IEnumerable<LoanRepaymentDto>>(loanrepayments);
+            }catch(Exception ex)
+            {
+                WatchLogger.LogError($"Error fetching all loan repayments : {ex}");
+                throw;
+            }
+        }
+        public async Task<IEnumerable<LoanRepaymentDto>> GetAllRepaymentsForLoanID(Guid userId,Guid loadId)
+        {
+            try
+            {
+                var loan = await _loanRepository.GetById(loadId);
+                var account = await _accountRepository.GetById(loan.AccountId);
+                if (account.UserId != userId)
+                {
+                    WatchLogger.LogWarning($"Access denied for user ID: {userId} on account ID: {loan.AccountId}");
+                    throw new AccessViolationException("Access Denied");
+                }
+                var loanrepayments = await _loanRepaymentRepository.GetLoanRepaymentsByLoanId(loadId);
+                return _mapper.Map<IEnumerable<LoanRepaymentDto>>(loanrepayments);
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError($"Error fetching all loan repayments : {ex}");
                 throw;
             }
         }

@@ -42,6 +42,12 @@ namespace SimpleBankingSystemAPI.Services
             _transactionVerificationRepository = transactionVerificationRepository;
         }
 
+        /// <summary>
+        /// Performs a deposit operation for a specified user and account.
+        /// </summary>
+        /// <param name="userId">The ID of the user performing the deposit.</param>
+        /// <param name="accountId">The ID of the account to deposit into.</param>
+        /// <param name="request">The deposit request containing the amount to deposit.</param>
         public async Task DepositAsync(Guid userId, Guid accountId, DepositRequest request)
         {
             try
@@ -94,7 +100,14 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Performs a withdrawal operation for a specified user and account.
+        /// </summary>
+        /// <param name="userId">The ID of the user performing the withdrawal.</param>
+        /// <param name="accountId">The ID of the account to withdraw from.</param>
+        /// <param name="request">The withdrawal request containing the amount to withdraw.</param>
         public async Task WithdrawAsync(Guid userId, Guid accountId, DepositRequest request)
         {
             try
@@ -152,7 +165,15 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Performs a transfer operation from one account to another.
+        /// </summary>
+        /// <param name="userId">The ID of the user performing the transfer.</param>
+        /// <param name="accountId">The ID of the account to transfer from.</param>
+        /// <param name="receiverId">The ID of the account to transfer to.</param>
+        /// <param name="request">The transfer request containing the amount and transaction type.</param>
         public async Task TransferAsync(Guid userId, Guid accountId, Guid receiverId, BankTransferRequest request)
         {
             try
@@ -232,7 +253,15 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Verifies a transfer operation for a specified user and account using a verification code.
+        /// </summary>
+        /// <param name="userId">The ID of the user performing the verification.</param>
+        /// <param name="accountId">The ID of the account to verify the transfer for.</param>
+        /// <param name="verificationCode">The verification code to validate the transfer.</param>
+        /// <returns>The verified transaction details.</returns>
         public async Task<TransactionDto> TransferVerificationAsync(Guid userId, Guid accountId, string verificationCode)
         {
             try
@@ -308,7 +337,14 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Retrieves all transactions for a specified user and account.
+        /// </summary>
+        /// <param name="userId">The ID of the user to retrieve transactions for.</param>
+        /// <param name="accountId">The ID of the account to retrieve transactions for.</param>
+        /// <returns>A collection of transaction details.</returns>
         public async Task<IEnumerable<TransactionDto>> GetTransactionsAsync(Guid userId, Guid accountId)
         {
             try
@@ -335,7 +371,14 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Retrieves all transaction requests for a specified user and account.
+        /// </summary>
+        /// <param name="userId">The ID of the user to retrieve transaction requests for.</param>
+        /// <param name="accountId">The ID of the account to retrieve transaction requests for.</param>
+        /// <returns>A collection of transaction request details.</returns>
         public async Task<IEnumerable<TransactionRequestDto>> GetTransactionByAccountAsync(Guid userId, Guid accountId)
         {
             try
@@ -362,7 +405,12 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Retrieves all transaction requests.
+        /// </summary>
+        /// <returns>A collection of transaction request details.</returns>
         public async Task<IEnumerable<TransactionRequestDto>> GetTransactionRequestAsync()
         {
             try
@@ -378,7 +426,12 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Retrieves all pending transaction requests.
+        /// </summary>
+        /// <returns>A collection of pending transaction request details.</returns>
         public async Task<IEnumerable<TransactionRequestDto>> GetPendingTransactionRequestAsync()
         {
             try
@@ -394,7 +447,12 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Retrieves all rejected transaction requests.
+        /// </summary>
+        /// <returns>A collection of rejected transaction request details.</returns>
         public async Task<IEnumerable<TransactionRequestDto>> GetRejectedTransactionRequestAsync()
         {
             try
@@ -410,7 +468,12 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Retrieves all approved transaction requests.
+        /// </summary>
+        /// <returns>A collection of approved transaction request details.</returns>
         public async Task<IEnumerable<TransactionRequestDto>> GetApprovedTransactionRequestAsync()
         {
             try
@@ -426,7 +489,11 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
-
+        
+        /// <summary>
+        /// Approves a transaction request.
+        /// </summary>
+        /// <param name="requestId">The ID of the transaction request to approve.</param>
         public async Task ApproveTransaction(Guid requestId)
         {
             try
@@ -460,7 +527,12 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
 
+        /// <summary>
+        /// Rejects a transaction request.
+        /// </summary>
+        /// <param name="requestId">The ID of the transaction request to reject.</param>
         public async Task RejectTransaction(Guid requestId)
         {
             try
@@ -488,5 +560,6 @@ namespace SimpleBankingSystemAPI.Services
                 throw;
             }
         }
+        
     }
 }

@@ -33,6 +33,11 @@ namespace SimpleBankingSystemAPI.Services
             _emailRepository = emailRepository;
         }
 
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="request">The registration request.</param>
+        /// <returns>The user profile DTO of the registered user.</returns>
         public async Task<UserProfileDto> RegisterAsync(RegisterRequest request)
         {
             try
@@ -70,6 +75,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Logs in a user.
+        /// </summary>
+        /// <param name="request">The login request.</param>
+        /// <returns>The JWT token for the logged-in user.</returns>
         public async Task<string> LoginAsync(LoginRequest request)
         {
             try
@@ -93,6 +103,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves the user profile by user ID.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <returns>The user profile DTO.</returns>
         public async Task<UserProfileDto> GetUserAsync(Guid userId)
         {
             try
@@ -111,6 +126,12 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Updates the user profile.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="request">The update user profile request.</param>
+        /// <returns>The updated user profile DTO.</returns>
         public async Task<UserProfileDto> UpdateUserProfileAsync(Guid userId, UpdateUserProfileRequest request)
         {
             try
@@ -133,6 +154,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Updates the user password.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="request">The update password request.</param>
         public async Task UpdateUserPasswordAsync(Guid userId, UpdatePasswordRequest request)
         {
             try
@@ -161,6 +187,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Requests an email update for the user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="newEmail">The new email address.</param>
         public async Task RequestEmailUpdateAsync(Guid userId, string newEmail)
         {
             try
@@ -196,6 +227,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Verifies the email update for the user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="verificationCode">The verification code.</param>
         public async Task VerifyEmailUpdateAsync(Guid userId, string verificationCode)
         {
             try
@@ -226,6 +262,10 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves all users.
+        /// </summary>
+        /// <returns>A collection of user profile DTOs.</returns>
         public async Task<IEnumerable<UserProfileDto>> GetAllAsync()
         {
             try
@@ -241,6 +281,10 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves all inactive users.
+        /// </summary>
+        /// <returns>A collection of inactive user profile DTOs.</returns>
         public async Task<IEnumerable<UserProfileDto>> GetAllInActiveUsersAsync()
         {
             try
@@ -256,6 +300,10 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves all active users.
+        /// </summary>
+        /// <returns>A collection of active user profile DTOs.</returns>
         public async Task<IEnumerable<UserProfileDto>> GetAllActiveUsersAsync()
         {
             try
@@ -271,6 +319,10 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Activates a user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
         public async Task ActivateUser(Guid userId)
         {
             try
@@ -291,12 +343,27 @@ namespace SimpleBankingSystemAPI.Services
         }
 
         #region PasswordHashing
+
+        /// <summary>
+        /// Creates a password hash and salt for the given password.
+        /// </summary>
+        /// <param name="password">The password to hash.</param>
+        /// <param name="passwordHash">The created password hash.</param>
+        /// <param name="passwordSalt">The created password salt.</param>
+
         private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
         {
             using var hmac = new System.Security.Cryptography.HMACSHA512();
             passwordSalt = hmac.Key;
             passwordHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
         }
+        /// <summary>
+        /// Verifies if the given password matches the stored hash and salt.
+        /// </summary>
+        /// <param name="password">The password to verify.</param>
+        /// <param name="storedHash">The stored password hash.</param>
+        /// <param name="storedSalt">The stored password salt.</param>
+        /// <returns>True if the password matches the stored hash and salt, false otherwise.</returns>
 
         private bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
         {
@@ -304,6 +371,11 @@ namespace SimpleBankingSystemAPI.Services
             var computedHash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));
             return computedHash.SequenceEqual(storedHash);
         }
+        /// <summary>
+        /// Generates a JWT token for the given user.
+        /// </summary>
+        /// <param name="user">The user for whom to generate the token.</param>
+        /// <returns>The generated JWT token.</returns>
 
         private string GenerateJwtToken(User user)
         {

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SimpleBankingSystemAPI.Exceptions;
 using SimpleBankingSystemAPI.Interfaces.Services;
 using SimpleBankingSystemAPI.Models.DTOs.AuthDTOs;
 using System.Security.Claims;
@@ -8,6 +9,9 @@ using WatchDog;
 
 namespace SimpleBankingSystemAPI.Controllers.v1
 {
+    /// <summary>
+    /// Controller for handling authentication related requests.
+    /// </summary>
     [ApiController]
     [Route("api/v1/[controller]")]
     public class AuthController : ControllerBase
@@ -21,7 +25,15 @@ namespace SimpleBankingSystemAPI.Controllers.v1
             _mapper = mapper;
         }
 
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="request">The registration request.</param>
+        /// <returns>The result of the registration request.</returns>
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Register(RegisterRequest request)
         {
             try
@@ -35,11 +47,23 @@ namespace SimpleBankingSystemAPI.Controllers.v1
             }
             catch (Exception ex)
             {
+                if (ex is UserAlreadyExistsException)
+                {
+                    return Conflict(new { message = ex.Message });
+                }
                 return BadRequest(new { message = ex.Message });
             }
         }
 
+        /// <summary>
+        /// Logs in a user.
+        /// </summary>
+        /// <param name="request">The login request.</param>
+        /// <returns>The authentication token.</returns>
         [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Login(LoginRequest request)
         {
             try
@@ -56,12 +80,22 @@ namespace SimpleBankingSystemAPI.Controllers.v1
             }
             catch (Exception ex)
             {
+                if(ex is InvalidCredentialException || ex is UserNotActivatedException)
+                {
+                    return Unauthorized(new { message = ex.Message });
+                }
                 return BadRequest(new { message = ex.Message });
             }
         }
 
+        /// <summary>
+        /// Logs out the currently authenticated user.
+        /// </summary>
+        /// <returns>A message indicating successful logout.</returns>
         [Authorize]
         [HttpPost("logout")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public IActionResult Logout()
         {
             try
