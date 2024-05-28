@@ -15,9 +15,14 @@ namespace SimpleBankingSystemAPI.Repositories
             _context = context;
         }
 
+        /// <summary>
+        /// Retrieves a list of transactions by account ID asynchronously.
+        /// </summary>
+        /// <param name="accountId">The ID of the account.</param>
+        /// <returns>A list of transactions.</returns>
         public async Task<IEnumerable<Transaction>> GetTransactionsByAccountIdAsync(Guid accountId)
         {
-           return await _context.Transactions.Where(t => t.AccountId == accountId).ToListAsync();
+            return await _context.Transactions.Where(t => t.AccountId == accountId).ToListAsync();
         }
     }
 }

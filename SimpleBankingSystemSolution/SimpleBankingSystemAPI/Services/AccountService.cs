@@ -24,12 +24,17 @@ namespace SimpleBankingSystemAPI.Services
             _pendingAccountClosingRepository = pendingAccountClosingRepository;
         }
 
+        /// <summary>
+        /// Opens a new account for a user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="request">The request object containing the account details.</param>
+        /// <returns>The created account DTO.</returns>
         public async Task<AccountDto> OpenAccountAsync(Guid userId, OpenAccountRequest request)
         {
             try
             {
                 WatchLogger.Log($"Attempting to open account for user {userId}");
-
                 var user = await _userRepository.GetById(userId);
                 if (user == null)
                 {
@@ -62,6 +67,12 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves an account for a user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="accountId">The ID of the account.</param>
+        /// <returns>The account DTO.</returns>
         public async Task<AccountDto> GetAccountAsync(Guid userId, Guid accountId)
         {
             try
@@ -83,6 +94,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Requests to close an account for a user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="accountId">The ID of the account.</param>
         public async Task RequestCloseAccountAsync(Guid userId, Guid accountId)
         {
             try
@@ -108,6 +124,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves all accounts for a user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <returns>A collection of account DTOs.</returns>
         public async Task<IEnumerable<AccountDto>> GetAccountsAsync(Guid userId)
         {
             try
@@ -124,6 +145,10 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves all accounts.
+        /// </summary>
+        /// <returns>A collection of account DTOs.</returns>
         public async Task<IEnumerable<AccountDto>> GetAllAccountsAsync()
         {
             try
@@ -140,6 +165,10 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Deletes an account.
+        /// </summary>
+        /// <param name="accountId">The ID of the account.</param>
         public async Task DeleteAccountAsync(Guid accountId)
         {
             try
@@ -156,6 +185,13 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Updates an account for a user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="accountId">The ID of the account.</param>
+        /// <param name="request">The request object containing the updated account details.</param>
+        /// <returns>The updated account DTO.</returns>
         public async Task<AccountDto> UpdateAccountAsync(Guid userId, Guid accountId, UpdateAccountRequest request)
         {
             try
@@ -186,6 +222,12 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Closes an account for a user.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <param name="accountId">The ID of the account.</param>
+        /// <param name="request">The request object containing the account closing details.</param>
         public async Task CloseAccountAsync(Guid userId, Guid accountId, AccountClosingDto request)
         {
             try
@@ -223,6 +265,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Retrieves all pending account closing requests for an admin user.
+        /// </summary>
+        /// <param name="userId">The ID of the admin user.</param>
+        /// <returns>A collection of account closing DTOs.</returns>
         public async Task<IEnumerable<AccountClosingDto>> GetPendingAccountClosingRequests(Guid userId)
         {
             try
@@ -249,6 +296,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Accepts an account close request by an admin user.
+        /// </summary>
+        /// <param name="userId">The ID of the admin user.</param>
+        /// <param name="requestId">The ID of the account close request.</param>
         public async Task AcceptAccountCloseRequest(Guid userId, Guid requestId)
         {
             try
@@ -293,6 +345,11 @@ namespace SimpleBankingSystemAPI.Services
             }
         }
 
+        /// <summary>
+        /// Rejects an account close request by an admin user.
+        /// </summary>
+        /// <param name="userId">The ID of the admin user.</param>
+        /// <param name="requestId">The ID of the account close request.</param>
         public async Task RejectAccountCloseRequest(Guid userId, Guid requestId)
         {
             try

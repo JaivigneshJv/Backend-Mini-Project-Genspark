@@ -14,5 +14,7 @@ namespace SimpleBankingSystemAPI.Interfaces.Services
         Task<IEnumerable<LoanDto>> GetAllClosedLoansAsync();
         Task<IEnumerable<LoanDto>> GetAllRejectedLoansAsync();
         Task<LoanRepaymentDto> RepayLoanRequest(Guid userId, Guid loanId, LoanRepaymentDto request);
+        Task<IEnumerable<LoanRepaymentDto>> GetLoanRepayments(Guid loadId);
+        Task<IEnumerable<LoanRepaymentDto>> GetAllRepaymentsForLoanID(Guid userId, Guid loadId);
     }
 }

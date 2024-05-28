@@ -20,14 +20,16 @@ namespace SimpleBankingSystemAPI
         public static void Main(string[] args)
         {
 
-            #region ConfigureServices
             var builder = WebApplication.CreateBuilder(args);
 
+            #region Controllers
             // Add services to the container.
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddLogging(l => l.AddLog4Net());
+            #endregion
+
+            #region Swagger
             builder.Services.AddSwaggerGen(option =>
             {
                 option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
@@ -41,18 +43,25 @@ namespace SimpleBankingSystemAPI
                 });
                 option.AddSecurityRequirement(new OpenApiSecurityRequirement { { new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } }, new string[] { } } });
             });
+            #endregion
 
+            #region Logging
+            builder.Services.AddLogging(l => l.AddLog4Net());
             //WatchDog - https://www.youtube.com/watch?v=LO-QKMHK5ps&ab_channel=MohamadLawand
             builder.Services.AddWatchDogServices(opt =>
             {
-                opt.SetExternalDbConnString = builder.Configuration.GetConnectionString("WatchManConnection");
+                opt.SetExternalDbConnString = builder.Configuration.GetConnectionString("WatchDogConnection");
                 opt.DbDriverOption = WatchDog.src.Enums.WatchDogDbDriverEnum.MSSQL;
             });
 
+            #endregion
+
+            #region Database
             builder.Services.AddDbContext<BankingContext>(options =>
              options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-            
-            
+            #endregion
+
+            #region Injection (Repositories and Services)
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<IUserService, UserService>();
 
@@ -75,10 +84,13 @@ namespace SimpleBankingSystemAPI
 
             builder.Services.AddScoped<IEmailVerificationRepository, EmailVerificationRepository>();
             builder.Services.AddTransient<IEmailSender, EmailSenderService>();
+            #endregion
 
-
+            #region AutoMapper
             builder.Services.AddAutoMapper(typeof(MappingProfile));
+            #endregion
 
+            #region Authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options =>
                 {
@@ -107,12 +119,9 @@ namespace SimpleBankingSystemAPI
             {
                 options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
             });
-
             #endregion
 
-
-            #region ConfigurePipeline
-
+            #region Configuring PipeLines
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -138,9 +147,9 @@ namespace SimpleBankingSystemAPI
                 opt.WatchPageUsername = watchdogCredentials["username"];
                 opt.WatchPagePassword = watchdogCredentials["password"];
             });
-
-            app.Run();
             #endregion
+            
+            app.Run();
         }
     }
 }

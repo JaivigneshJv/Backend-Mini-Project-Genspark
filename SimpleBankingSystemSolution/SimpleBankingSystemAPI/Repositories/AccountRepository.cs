@@ -14,6 +14,11 @@ namespace SimpleBankingSystemAPI.Repositories
             _context = context;
         }
 
+        /// <summary>
+        /// Retrieves a list of accounts associated with a specific user ID.
+        /// </summary>
+        /// <param name="userId">The ID of the user.</param>
+        /// <returns>A list of accounts.</returns>
         public async Task<IEnumerable<Account>> GetAccountsByUserIdAsync(Guid userId)
         {
             return await _context.Accounts.Where(a => a.UserId == userId).ToListAsync();
