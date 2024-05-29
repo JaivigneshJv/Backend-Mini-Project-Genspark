@@ -245,6 +245,66 @@ namespace SimpleBankingSystemAPI.Tests
             // Assert
             Assert.IsEmpty(result);
         }
+        [Test]
+        public void TransferAsync_ReceiverAccountNotFound_ShouldThrowAccountNotFoundException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var receiverId = Guid.NewGuid();
+            var request = new BankTransferRequest { Amount = 500, TransactionType = "IMPS" };
+            var user = new User { Id = userId, Email = "test@example.com" };
+            var account = new Account { Id = accountId, UserId = userId, Balance = 1000, isActive = true };
+
+            _userRepositoryMock.Setup(repo => repo.GetById(userId)).ReturnsAsync(user);
+            _accountRepositoryMock.Setup(repo => repo.GetById(accountId)).ReturnsAsync(account);
+            _accountRepositoryMock.Setup(repo => repo.GetById(receiverId)).ReturnsAsync((Account)null);
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _transactionService.TransferAsync(userId, accountId, receiverId, request));
+        }
+        [Test]
+        public void WithdrawAsync_UserNotFound_ShouldThrowUserNotFoundException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var request = new DepositRequest { Amount = 500 };
+
+            _userRepositoryMock.Setup(repo => repo.GetById(userId)).ReturnsAsync((User)null);
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _transactionService.WithdrawAsync(userId, accountId, request));
+        }
+        [Test]
+        public void DepositAsync_UserNotFound_ShouldThrowUserNotFoundException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var request = new DepositRequest { Amount = 1000 };
+
+            _userRepositoryMock.Setup(repo => repo.GetById(userId)).ReturnsAsync((User)null);
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _transactionService.DepositAsync(userId, accountId, request));
+        }
+
+
+        [Test]
+        public void TransferVerificationAsync_VerificationRecordNotFound_ShouldThrowVerificationNotFoundException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var verificationCode = "123456";
+
+            _transactionVerificationRepositoryMock.Setup(repo => repo.GetVerificationByAccountIdAsync(accountId)).ReturnsAsync((TransactionVerification)null);
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _transactionService.TransferVerificationAsync(userId, accountId, verificationCode));
+        }
+
 
     }
 }

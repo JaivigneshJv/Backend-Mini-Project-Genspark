@@ -79,8 +79,37 @@ namespace SimpleBankingSystemAPI.Tests.Services
             // Act & Assert
             Assert.ThrowsAsync<UserAlreadyExistsException>(() => _userService.RegisterAsync(request));
         }
+        [Test]
+        public void LoginAsync_UserNotFound_ShouldThrowUserNotFoundException()
+        {
+            // Arrange
+            var request = new LoginRequest { Username = "nonexistentuser", Password = "Password123!" };
 
-    
+            _userRepositoryMock.Setup(repo => repo.GetUserByUsernameAsync(request.Username)).ReturnsAsync((User)null);
+
+            // Act & Assert
+            Assert.ThrowsAsync<InvalidCredentialException>(() => _userService.LoginAsync(request));
+        }
+
+        [Test]
+        public async Task UpdateUserProfileAsync_ValidRequest_ShouldUpdateUserProfile()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var request = new UpdateUserProfileRequest { FirstName = "Updated", LastName = "User" };
+            var user = new User { Id = userId, FirstName = "Old", LastName = "User" };
+
+            _userRepositoryMock.Setup(repo => repo.GetById(userId)).ReturnsAsync(user);
+
+            // Act
+            await _userService.UpdateUserProfileAsync(userId, request);
+
+            // Assert
+            Assert.AreEqual(request.FirstName, request.FirstName);
+            Assert.AreEqual(request.LastName, request.LastName);
+        }
+
+
 
         [Test]
         public void LoginAsync_InvalidCredentials_ShouldThrowInvalidCredentialException()

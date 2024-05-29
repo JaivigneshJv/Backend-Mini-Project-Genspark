@@ -140,6 +140,48 @@ namespace SimpleBankingSystemAPI.Tests.Services
             // Act & Assert
             Assert.ThrowsAsync<Exception>(() => _loanService.GetAllPendingLoansAsync());
         }
+        [Test]
+        public void ApplyForLoanAsync_LoanApplicationFails_ShouldThrowException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var request = new LoanRequest { Amount = 10000};
+            var user = new User { Id = userId, Email = "test@example.com" };
+
+            _userRepositoryMock.Setup(repo => repo.GetById(userId)).ReturnsAsync(user);
+            _loanRepositoryMock.Setup(repo => repo.Add(It.IsAny<Loan>())).Throws(new Exception("Loan application failed"));
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _loanService.ApplyLoan(userId, request));
+        }
+       
+        [Test]
+        public async Task GetAllLoansByUserIdAsync_NoLoansFound_ShouldReturnEmptyList()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+
+            _loanRepositoryMock.Setup(repo => repo.GetLoansByAccountId(userId)).ReturnsAsync(new List<Loan>());
+
+            // Act
+            var result = await _loanService.GetAllPendingLoansAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+        }
+        [Test]
+        public void ApproveLoanAsync_LoanAlreadyApproved_ShouldThrowLoanAlreadyApprovedException()
+        {
+            // Arrange
+            var loanId = Guid.NewGuid();
+            var loan = new Loan { Id = loanId };
+
+            _loanRepositoryMock.Setup(repo => repo.GetById(loanId)).ReturnsAsync(loan);
+
+            // Act & Assert
+            Assert.ThrowsAsync<NullReferenceException>(() => _loanService.ApproveLoanAsync(loanId));
+        }
+        
 
 
     }

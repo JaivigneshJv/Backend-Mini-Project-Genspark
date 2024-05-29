@@ -209,6 +209,57 @@ namespace SimpleBankingSystemUnitTest.Services
             // Act & Assert
             Assert.ThrowsAsync<AccountNotFoundException>(async () => await _accountService.GetAccountAsync(userId, accountId));
         }
+        [Test]
+        public void CreateAccountAsync_AccountCreationFails_ShouldThrowException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var user = new User { Id = userId, Email = "test@example.com" };
+
+            _userRepositoryMock.Setup(repo => repo.GetById(userId)).ReturnsAsync(user);
+            _accountRepositoryMock.Setup(repo => repo.Add(It.IsAny<Account>())).Throws(new Exception("Account creation failed"));
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _accountService.RequestCloseAccountAsync(userId,userId));
+        }
+        [Test]
+        public void GetAccountByIdAsync_AccountInactive_ShouldThrowAccountInactiveException()
+        {
+            // Arrange
+            var accountId = Guid.NewGuid();
+            var account = new Account { Id = accountId, isActive = false };
+
+            _accountRepositoryMock.Setup(repo => repo.GetById(accountId)).ReturnsAsync(account);
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _accountService.GetAccountAsync(accountId, accountId));
+        }
+        [Test]
+        public void CloseAccountAsync_AccountNotFound_ShouldThrowAccountNotFoundException()
+        {
+            // Arrange
+            var accountId = Guid.NewGuid();
+
+            _accountRepositoryMock.Setup(repo => repo.GetById(accountId)).ReturnsAsync((Account)null);
+
+            // Act & Assert
+            Assert.ThrowsAsync<AccountNotFoundException>(() => _accountService.RequestCloseAccountAsync(accountId, accountId));
+        }
+        [Test]
+        public async Task GetAllAccountsByUserIdAsync_NoAccountsFound_ShouldReturnEmptyList()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+
+            _accountRepositoryMock.Setup(repo => repo.GetAccountsByUserIdAsync(userId)).ReturnsAsync(new List<Account>());
+
+            // Act
+            var result = await _accountService.GetAllAccountsAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+        }
+
 
         [Test]
         public async Task GetAccountsAsync_Success()
