@@ -85,13 +85,14 @@ public class AccountsController : ControllerBase
     [HttpPost("close-request/{accountId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> RequestCloseAccount(Guid accountId)
+    public async Task<IActionResult> RequestCloseAccount(Guid accountId, AccountClosingDto request)
     {
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            await _accountService.RequestCloseAccountAsync(Guid.Parse(userId)!, accountId);
+            await _accountService.CloseAccountAsync(Guid.Parse(userId)!, accountId, request);
             return Ok(new { message = "Close request has been sent" });
         }
         catch (Exception ex)
@@ -99,6 +100,10 @@ public class AccountsController : ControllerBase
             if (ex is AccountNotFoundException)
             {
                 return NotFound(new { message = ex.Message });
+            }
+            if(ex is AccountHasBalanceException)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             return StatusCode(500, $"An error occurred while requesting to close the account: {ex.Message}");
         }

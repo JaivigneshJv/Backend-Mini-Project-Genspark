@@ -52,7 +52,8 @@ namespace SimpleBankingSystemAPI.Services
                     TransactionPasswordHash = passwordHash,
                     TransactionPasswordKey = passwordSalt,
                     CreatedDate = System.DateTime.UtcNow,
-                    UpdatedDate = System.DateTime.UtcNow
+                    UpdatedDate = System.DateTime.UtcNow,
+                    isActive = true
                 };
 
                 await _accountRepository.Add(account);
@@ -112,7 +113,7 @@ namespace SimpleBankingSystemAPI.Services
                 }
 
                 account.UpdatedDate = System.DateTime.UtcNow;
-                account.AccountType = "Closed";
+                account.AccountType = "Close Request";
                 _accountRepository.Update(account);
 
                 WatchLogger.Log($"Account {accountId} marked for closing");

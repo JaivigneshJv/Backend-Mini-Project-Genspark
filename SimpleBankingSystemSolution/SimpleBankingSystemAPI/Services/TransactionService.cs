@@ -291,8 +291,9 @@ namespace SimpleBankingSystemAPI.Services
                     WatchLogger.LogWarning($"Invalid verification code: {verificationCode} for account ID: {accountId}");
                     throw new InvalidVerificationCodeException("Invalid verification code");
                 }
-                if (verification.Timestamp.AddMinutes(5) < DateTime.UtcNow)
+                if (verification.Timestamp.AddMinutes(15) < DateTime.UtcNow)
                 {
+                    await _transactionVerificationRepository.Delete(verification.Id);
                     WatchLogger.LogWarning($"Verification code expired for account ID: {accountId}");
                     throw new VerificationCodeExpiredException("Verification code expired");
                 }
@@ -301,14 +302,16 @@ namespace SimpleBankingSystemAPI.Services
                 {
                     var senderAccount = await _accountRepository.GetById(verification.AccountId);
                     var receiverAccount = await _accountRepository.GetById(verification.ReceiverId);
+                    var senderUser = await _userRepository.GetById(senderAccount.UserId);
+                    var receiverUser = await _userRepository.GetById(receiverAccount.UserId);
 
-                    senderAccount.Balance -= verification.Amount;
+                    senderAccount.Balance -= (verification.Amount - 3);
                     receiverAccount.Balance += verification.Amount;
 
                     await _accountRepository.Update(account);
                     await _accountRepository.Update(receiverAccount);
-                    await _emailService.SendEmailAsync(senderAccount.User!.Email!, "IMPS Transaction Successful [Simple Bank]", $"Payment to {receiverAccount.User!.FirstName} {receiverAccount.User!.LastName} \n\n Transaction Amount: {verification.Amount} \nNew Balance: {senderAccount.Balance}");
-                    await _emailService.SendEmailAsync(receiverAccount.User!.Email!, "IMPS Transaction Received [Simple Bank]", $"Payment from {senderAccount.User!.FirstName} {senderAccount.User!.LastName} \n\n Transaction Amount: {verification.Amount} \nNew Balance: {receiverAccount.Balance}");
+                    await _emailService.SendEmailAsync(senderUser.Email!, "IMPS Transaction Successful [Simple Bank]", $"Payment to {receiverUser.FirstName} {receiverUser.LastName} \n\n Transaction Amount: {verification.Amount} \nNew Balance: {senderAccount.Balance}");
+                    await _emailService.SendEmailAsync(receiverUser.Email!, "IMPS Transaction Received [Simple Bank]", $"Payment from {senderUser.FirstName} {senderUser.LastName} \n\n Transaction Amount: {verification.Amount} \nNew Balance: {receiverAccount.Balance}");
                     await _transactionRepository.Add(_mapper.Map<Transaction>(verification));
                     await _transactionVerificationRepository.Delete(verification.Id);
                 }
