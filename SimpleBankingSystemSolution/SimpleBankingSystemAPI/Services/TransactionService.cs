@@ -293,6 +293,7 @@ namespace SimpleBankingSystemAPI.Services
                 }
                 if (verification.Timestamp.AddMinutes(15) < DateTime.UtcNow)
                 {
+                    await _transactionVerificationRepository.Delete(verification.Id);
                     WatchLogger.LogWarning($"Verification code expired for account ID: {accountId}");
                     throw new VerificationCodeExpiredException("Verification code expired");
                 }
@@ -304,7 +305,7 @@ namespace SimpleBankingSystemAPI.Services
                     var senderUser = await _userRepository.GetById(senderAccount.UserId);
                     var receiverUser = await _userRepository.GetById(receiverAccount.UserId);
 
-                    senderAccount.Balance -= verification.Amount;
+                    senderAccount.Balance -= (verification.Amount - 3);
                     receiverAccount.Balance += verification.Amount;
 
                     await _accountRepository.Update(account);
