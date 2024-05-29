@@ -25,7 +25,7 @@ namespace SimpleBankingSystemAPI.Models
         [Required, EmailAddress, MaxLength(100)]
         public string? Email { get; set; }
 
-        [Required, MaxLength(20)]
+        [Required, MaxLength(14)]
         public string? Contact { get; set; }
 
         [Required]

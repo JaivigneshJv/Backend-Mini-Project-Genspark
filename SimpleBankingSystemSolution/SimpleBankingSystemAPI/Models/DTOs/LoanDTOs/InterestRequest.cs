@@ -5,14 +5,14 @@ namespace SimpleBankingSystemAPI.Models.DTOs.LoanDTOs
 {
     public class InterestRequest
     {
-        [Required, Column(TypeName = "decimal(18,2)")]
+        [Required(ErrorMessage = "Amount is required")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Applied date is required")]
         public DateTime AppliedDate { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Target date is required")]
         public DateTime TargetDate { get; set; }
-
     }
 }

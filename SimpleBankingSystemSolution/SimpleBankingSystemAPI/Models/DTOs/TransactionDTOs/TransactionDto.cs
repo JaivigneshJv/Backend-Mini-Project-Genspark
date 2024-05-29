@@ -5,25 +5,26 @@ namespace SimpleBankingSystemAPI.Models.DTOs.TransactionDTOs
 {
     public class TransactionDto
     {
-        [Required]
+        [Required(ErrorMessage = "AccountId is required")]
         public Guid AccountId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "ReceiverId is required")]
         public Guid ReceiverId { get; set; }
 
-        [Required, Column(TypeName = "decimal(18,2)")]
+        [Required(ErrorMessage = "Amount is required")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "TransactionType is required")]
         public string? TransactionType { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Timestamp is required")]
         public DateTime Timestamp { get; set; }
 
-        [MaxLength(500)]
+        [MaxLength(500, ErrorMessage = "Description cannot exceed 500 characters")]
         public string? Description { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "IsRecurring is required")]
         public bool IsRecurring { get; set; }
     }
 }

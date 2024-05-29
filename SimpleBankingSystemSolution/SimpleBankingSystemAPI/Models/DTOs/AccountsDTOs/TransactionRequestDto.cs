@@ -7,21 +7,26 @@ namespace SimpleBankingSystemAPI.Models.DTOs.AccountsDTOs
     {
         [Key]
         public Guid Id { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "AccountId is required")]
         public Guid AccountId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "ReceiverId is required")]
         public Guid ReceiverId { get; set; }
 
-        [Required, Column(TypeName = "decimal(18,2)")]
+        [Required(ErrorMessage = "Amount is required")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "TransactionType is required")]
         public string? TransactionType { get; set; }
+
         public DateTime Timestamp { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "IsApproved is required")]
         public bool IsApproved { get; set; }
-        [Required]
+
+        [Required(ErrorMessage = "IsRejected is required")]
         public bool IsRejected { get; set; }
     }
 }

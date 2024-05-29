@@ -5,13 +5,14 @@ namespace SimpleBankingSystemAPI.Models.DTOs.LoanDTOs
 {
     public class LoanRepaymentDto
     {
-        [Required]
+        [Required(ErrorMessage = "LoanId is required")]
         public Guid LoanId { get; set; }
 
-        [Required, Column(TypeName = "decimal(18,2)")]
+        [Required(ErrorMessage = "Amount is required")]
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "PaymentDate is required")]
         public DateTime PaymentDate { get; set; }
 
     }
