@@ -17,6 +17,10 @@
     - [Installation](#installation)
     - [Configuration](#configuration)
     - [Running the Application](#running-the-application)
+  - [Docker and Docker Compose Configuration](#docker-and-docker-compose-configuration)
+    - [Database Service (db)](#database-service-db)
+    - [API Service (yourprojectapi)](#api-service-yourprojectapi)
+    - [Dockerfile](#dockerfile)
   - [API Endpoints](#api-endpoints)
     - [Account Endpoints](#account-endpoints)
     - [Admin Endpoints](#admin-endpoints)
@@ -28,10 +32,18 @@
   - [Testing](#testing)
     - [Running Tests](#running-tests)
     - [Coverage Report](#coverage-report)
+  - [Deployment to Azure](#deployment-to-azure)
+    - [Prerequisites](#prerequisites-1)
+    - [Steps](#steps)
+      - [Docker](#docker)
+      - [Azure](#azure)
   - [Relevant Repo](#relevant-repo)
 
 ## Overview
-The **Simple Banking System** is a web-based backend application built using ASP.NET Core Web API for creating RESTful services. It provides essential banking functionalities such as user management, account management, transaction management, and loan management. The application uses Entity Framework Core for data management, a Service layer for business logic, and incorporates JSON Web Tokens (JWT) for authentication. API documentation can be created through Swagger and Postman.
+The **Simple Banking System** is a web-based backend application built using ASP.NET Core Web API for creating RESTful services. It provides essential banking functionalities such as user management, account management, transaction management, and loan management. The application uses Entity Framework Core for data management, a Service layer for business logic, and incorporates JSON Web Tokens (JWT) for authentication. API documentation can be created through Swagger and Postman. 
+
+[simplebankingsystemwebapi.azurewebsites.net](
+https://simplebankingsystemwebapi.azurewebsites.net/swagger) - hosted in Azure 
 
 ## Expected Features
 
@@ -153,6 +165,25 @@ Configure your application settings in `appsettings.json`:
 
 3. **Access WatchDog**
    `https://localhost:7080/watchdog /http://localhost:5010/watchdog` 
+
+
+## Docker and Docker Compose Configuration
+
+This project uses Docker and Docker Compose for containerization and orchestration. The `docker-compose.yml` file defines two services: `db` and `yourprojectapi`.
+
+### Database Service (db)
+
+The `db` service uses the `mcr.microsoft.com/mssql/server` image and exposes port 1433. It uses a health check to ensure the database is running correctly. The SA password and acceptance of the End User License Agreement (EULA) are set via environment variables.
+
+### API Service (yourprojectapi)
+
+The `yourprojectapi` service uses a custom image `todorokishoto1/simplebankwebapigenspark` and exposes port 8000. It depends on the `db` service and will only start once the `db` service is healthy.
+
+### Dockerfile
+
+The Dockerfile uses multi-stage builds to create a lean production image. It starts from the `mcr.microsoft.com/dotnet/aspnet:6.0` base image, copies the project files, restores any necessary dependencies, builds the application, and publishes it. The final image is built from the base image, and the published files are copied into it. The application is then started with `dotnet SimpleBankingSystemAPI.dll`.
+
+This Docker configuration is hosted on Azure Web Services.
 
 ## API Endpoints
 
@@ -361,6 +392,82 @@ To generate a code coverage report:
 ```sh
 dotnet test /p:CollectCoverage=true
 ```
+
+
+## Deployment to Azure
+
+This project can be deployed to Azure using Azure App Service and Azure SQL Database.
+
+### Prerequisites
+
+- An Azure account
+- Azure CLI installed on your local machine
+
+### Steps
+
+#### Docker 
+
+1. **Login to Docker Hub**: Use the Docker CLI to login to your Docker Hub account.
+
+    ```sh
+    docker login
+    ```
+
+    You will be prompted to enter your Docker Hub username and password.
+
+2. **Build the Docker Image**: Replace `<docker-image-name>` with your preferred Docker image name and `<dockerfile-path>` with the path to your Dockerfile.
+
+    ```sh
+    docker build -t <docker-image-name> <dockerfile-path>
+    ```
+
+3. **Tag the Docker Image**: Replace `<docker-image-name>`, `<docker-hub-username>`, and `<tag>` with your Docker image name, Docker Hub username, and preferred tag respectively.
+
+    ```sh
+    docker tag <docker-image-name> <docker-hub-username>/<docker-image-name>:<tag>
+    ```
+
+4. **Push the Docker Image to Docker Hub**: 
+
+    ```sh
+    docker push <docker-hub-username>/<docker-image-name>:<tag>
+    ```
+
+#### Azure
+1. **Login to Azure**: Use the Azure CLI to login to your Azure account.
+
+  ```sh
+  az login
+  ```
+
+2. **Create a Resource Group**: Replace `<resource-group-name>` and `<location>` with your preferred resource group name and location respectively.
+
+  ```sh
+  az group create --name <resource-group-name> --location <location>
+  ```
+
+3. **Create an App Service Plan**: Replace `<app-service-plan-name>` with your preferred app service plan name.
+
+  ```sh
+  az appservice plan create --name <app-service-plan-name> --resource-group <resource-group-name> --sku B2 --is-linux
+  ```
+
+4. **Create a Web App**: Replace `<web-app-name>` with your preferred web app name.
+
+  ```sh
+  az webapp create --resource-group <resource-group-name> --plan <app-service-plan-name> --name <web-app-name> --deployment-container-image-name <docker-image-name>
+  ```
+
+5. **Configure the Web App to use the Docker Compose file**: Replace `<docker-compose-file-path>` with the path to your Docker Compose file. which has the image for asp.net core web api
+
+  ```sh
+  az webapp config container set --name <web-app-name> --resource-group <resource-group-name> --multicontainer-config-type compose --multicontainer-config-file <docker-compose-file-path>
+  ```
+
+
+After following these steps, your application should be deployed to Azure and accessible at `https://<web-app-name>.azurewebsites.net`.
+
+
 ## Relevant Repo
 
 [Genspark Training](https://github.com/JaivigneshJv/GenSpark)
