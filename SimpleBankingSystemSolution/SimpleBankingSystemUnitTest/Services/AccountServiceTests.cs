@@ -36,6 +36,250 @@ namespace SimpleBankingSystemUnitTest.Services
                 _mapperMock.Object);
         }
 
+      
+
+        [Test]
+        public async Task UpdateAccountAsync_Success()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var request = new UpdateAccountRequest { TransactionPassword = "newPassword" };
+            var account = new Account { Id = accountId, UserId = userId };
+
+            _accountRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(account);
+            _mapperMock.Setup(x => x.Map<AccountDto>(It.IsAny<Account>())).Returns(new AccountDto());
+
+            // Act
+            var result = await _accountService.UpdateAccountAsync(userId, accountId, request);
+
+            // Assert
+            Assert.IsNotNull(result);
+            _accountRepositoryMock.Verify(x => x.GetById(It.IsAny<Guid>()), Times.Once);
+            _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Once);
+        }
+
+
+
+        [Test]
+        public async Task GetAllAccountsAsync_Success()
+        {
+            // Arrange
+            var accounts = new List<Account> { new Account { Id = Guid.NewGuid() } };
+
+            _accountRepositoryMock.Setup(x => x.GetAll()).ReturnsAsync(accounts);
+            _mapperMock.Setup(x => x.Map<IEnumerable<AccountDto>>(It.IsAny<IEnumerable<Account>>())).Returns(new List<AccountDto>());
+
+            // Act
+            var result = await _accountService.GetAllAccountsAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+            _accountRepositoryMock.Verify(x => x.GetAll(), Times.Once);
+        }
+      
+
+        [Test]
+        public async Task GetAccountAsync_WhenAccountExists_ShouldReturnAccountDto()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var account = new Account { UserId = userId };
+            var accountDto = new AccountDto();
+
+            _accountRepositoryMock.Setup(x => x.GetById(accountId)).ReturnsAsync(account);
+            _mapperMock.Setup(x => x.Map<AccountDto>(account)).Returns(accountDto);
+
+            // Act
+            var result = await _accountService.GetAccountAsync(userId, accountId);
+
+            // Assert
+            Assert.AreEqual(accountDto, result);
+        }
+
+        [Test]
+        public async Task RequestCloseAccountAsync_WhenAccountExists_ShouldNotThrowException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var account = new Account { UserId = userId };
+
+            _accountRepositoryMock.Setup(x => x.GetById(accountId)).ReturnsAsync(account);
+
+            // Act
+            await _accountService.RequestCloseAccountAsync(userId, accountId);
+
+            // Assert
+            _accountRepositoryMock.Verify(x => x.Update(account), Times.Once);
+        }
+
+        [Test]
+        public async Task GetAccountsAsync_WhenAccountsExist_ShouldReturnAccountDtos()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accounts = new List<Account> { new Account(), new Account() };
+            var accountDtos = new List<AccountDto> { new AccountDto(), new AccountDto() };
+
+            _accountRepositoryMock.Setup(x => x.GetAccountsByUserIdAsync(userId)).ReturnsAsync(accounts);
+            _mapperMock.Setup(x => x.Map<IEnumerable<AccountDto>>(accounts)).Returns(accountDtos);
+
+            // Act
+            var result = await _accountService.GetAccountsAsync(userId);
+
+            // Assert
+            CollectionAssert.AreEqual(accountDtos, result);
+        }
+       
+
+        [Test]
+        public async Task GetPendingAccountClosingRequests_WhenRequestsExist_ShouldReturnAccountClosingDtos()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var pendingAccountClosingRequests = new List<PendingAccountClosing> { new PendingAccountClosing(), new PendingAccountClosing() };
+            var accountClosingDtos = new List<AccountClosingDto> { new AccountClosingDto(), new AccountClosingDto() };
+
+            _userRepositoryMock.Setup(x => x.GetById(userId)).ReturnsAsync(new User { Role = "Admin" });
+            _pendingAccountClosingRepositoryMock.Setup(x => x.GetAll()).ReturnsAsync(pendingAccountClosingRequests);
+            _mapperMock.Setup(x => x.Map<IEnumerable<AccountClosingDto>>(pendingAccountClosingRequests)).Returns(accountClosingDtos);
+
+            // Act
+            var result = await _accountService.GetPendingAccountClosingRequests(userId);
+
+            // Assert
+            CollectionAssert.AreEqual(accountClosingDtos, result);
+        }
+
+        [Test]
+        public async Task AcceptAccountCloseRequest_WhenRequestExists_ShouldNotThrowException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var requestId = Guid.NewGuid();
+            var account = new Account();
+            var pendingAccountClosing = new PendingAccountClosing { AccountId = account.Id };
+
+            _userRepositoryMock.Setup(x => x.GetById(userId)).ReturnsAsync(new User { Role = "Admin" });
+            _pendingAccountClosingRepositoryMock.Setup(x => x.GetById(requestId)).ReturnsAsync(pendingAccountClosing);
+            _accountRepositoryMock.Setup(x => x.GetById(account.Id)).ReturnsAsync(account);
+
+            // Act
+            await _accountService.AcceptAccountCloseRequest(userId, requestId);
+
+            // Assert
+            _pendingAccountClosingRepositoryMock.Verify(x => x.Update(pendingAccountClosing), Times.Once);
+            _accountRepositoryMock.Verify(x => x.Update(account), Times.Once);
+        }
+
+
+        [Test]
+        public async Task GetAllAccountsAsync_WhenAccountsExist_ShouldReturnAccountDtos()
+        {
+            // Arrange
+            var accounts = new List<Account> { new Account(), new Account() };
+            var accountDtos = new List<AccountDto> { new AccountDto(), new AccountDto() };
+
+            _accountRepositoryMock.Setup(x => x.GetAll()).ReturnsAsync(accounts);
+            _mapperMock.Setup(x => x.Map<IEnumerable<AccountDto>>(accounts)).Returns(accountDtos);
+
+            // Act
+            var result = await _accountService.GetAllAccountsAsync();
+
+            // Assert
+            CollectionAssert.AreEqual(accountDtos, result);
+        }
+        [Test]
+        public async Task RequestCloseAccountAsync_Success()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var accountId = Guid.NewGuid();
+            var account = new Account { Id = accountId, UserId = userId };
+
+            _accountRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(account);
+
+            // Act
+            await _accountService.RequestCloseAccountAsync(userId, accountId);
+
+            // Assert
+            _accountRepositoryMock.Verify(x => x.GetById(It.IsAny<Guid>()), Times.Once);
+            _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Once);
+        }
+
+
+        [Test]
+        public async Task GetPendingAccountClosingRequests_Success()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var user = new User { Id = userId, Role = "Admin" };
+            var pendingAccountClosingRequests = new List<PendingAccountClosing> { new PendingAccountClosing { Id = Guid.NewGuid() } };
+
+            _userRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(user);
+            _pendingAccountClosingRepositoryMock.Setup(x => x.GetAll()).ReturnsAsync(pendingAccountClosingRequests);
+            _mapperMock.Setup(x => x.Map<IEnumerable<AccountClosingDto>>(It.IsAny<IEnumerable<PendingAccountClosing>>())).Returns(new List<AccountClosingDto>());
+
+            // Act
+            var result = await _accountService.GetPendingAccountClosingRequests(userId);
+
+            // Assert
+            Assert.IsNotNull(result);
+            _userRepositoryMock.Verify(x => x.GetById(It.IsAny<Guid>()), Times.Once);
+            _pendingAccountClosingRepositoryMock.Verify(x => x.GetAll(), Times.Once);
+        }
+
+        [Test]
+        public async Task AcceptAccountCloseRequest_Success()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var requestId = Guid.NewGuid();
+            var user = new User { Id = userId, Role = "Admin" };
+            var closeAccountRequest = new PendingAccountClosing { Id = requestId, AccountId = Guid.NewGuid() };
+            var account = new Account { Id = closeAccountRequest.AccountId, UserId = userId };
+
+            _userRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(user);
+            _pendingAccountClosingRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(closeAccountRequest);
+            _accountRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(account);
+
+            // Act
+            await _accountService.AcceptAccountCloseRequest(userId, requestId);
+
+            // Assert
+            _userRepositoryMock.Verify(x => x.GetById(It.IsAny<Guid>()), Times.Once);
+            _pendingAccountClosingRepositoryMock.Verify(x => x.GetById(It.IsAny<Guid>()), Times.Once);
+            _accountRepositoryMock.Verify(x => x.GetById(It.IsAny<Guid>()), Times.Once);
+            _pendingAccountClosingRepositoryMock.Verify(x => x.Update(It.IsAny<PendingAccountClosing>()), Times.Once);
+            _accountRepositoryMock.Verify(x => x.Update(It.IsAny<Account>()), Times.Once);
+        }
+
+        [Test]
+        public async Task RejectAccountCloseRequest_Success()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var requestId = Guid.NewGuid();
+            var user = new User { Id = userId, Role = "Admin" };
+            var closeAccountRequest = new PendingAccountClosing { Id = requestId, AccountId = Guid.NewGuid() };
+            var account = new Account { Id = closeAccountRequest.AccountId, UserId = userId };
+
+            _userRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(user);
+            _pendingAccountClosingRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(closeAccountRequest);
+            _accountRepositoryMock.Setup(x => x.GetById(It.IsAny<Guid>())).ReturnsAsync(account);
+
+            // Act
+            await _accountService.RejectAccountCloseRequest(userId, requestId);
+
+            // Assert
+            _userRepositoryMock.Verify(x => x.GetById(It.IsAny<Guid>()), Times.Once);
+            _pendingAccountClosingRepositoryMock.Verify(x => x.GetById(It.IsAny<Guid>()), Times.Once);
+            _pendingAccountClosingRepositoryMock.Verify(x => x.Update(It.IsAny<PendingAccountClosing>()), Times.Once);
+        }
+
+
         [Test]
         public async Task OpenAccountAsync_WhenUserNotFound_ShouldThrowUserNotFoundException()
         {

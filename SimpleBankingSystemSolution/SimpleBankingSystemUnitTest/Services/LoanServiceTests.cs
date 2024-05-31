@@ -46,6 +46,105 @@ namespace SimpleBankingSystemAPI.Tests.Services
                 loanRepository: _loanRepositoryMock.Object,
                 mapper: _mapperMock.Object);
         }
+        [Test]
+        public async Task RepayLoanRequest_WhenValidRequest_ShouldRepayLoan()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var loanId = Guid.NewGuid();
+            var request = new LoanRepaymentDto { Amount = 1000, PaymentDate = DateTime.UtcNow };
+            var loan = new Loan { Id = loanId, AccountId = Guid.NewGuid(), PendingAmount = 2000, Status = "Opened" };
+            var account = new Account { Id = loan.AccountId, UserId = userId, Balance = 3000 };
+
+            _loanRepositoryMock.Setup(repo => repo.GetById(loanId)).ReturnsAsync(loan);
+            _accountRepositoryMock.Setup(repo => repo.GetById(loan.AccountId)).ReturnsAsync(account);
+
+            // Act
+            var result = await _loanService.RepayLoanRequest(userId, loanId, request);
+
+            // Assert
+            Assert.IsNotNull(result);
+        }
+
+        [Test]
+        public async Task GetAllRepaymentsForLoanID_WhenCalled_ShouldReturnRepayments()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var loanId = Guid.NewGuid();
+            var repayments = new List<LoanRepayment> { new LoanRepayment { LoanId = loanId } };
+
+            _loanRepaymentRepositoryMock.Setup(repo => repo.GetLoanRepaymentsByLoanId(loanId)).ReturnsAsync(repayments);
+
+            // Act
+            var result = await _loanService.GetAllRepaymentsForLoanID(userId, loanId);
+
+            // Assert
+            Assert.IsNotNull(result);
+        }
+
+        [Test]
+        public async Task RejectLoanAsync_WhenValidRequest_ShouldRejectLoan()
+        {
+            // Arrange
+            var loanId = Guid.NewGuid();
+            var loan = new Loan { Id = loanId, Status = "Pending" };
+
+            _loanRepositoryMock.Setup(repo => repo.GetById(loanId)).ReturnsAsync(loan);
+
+            // Act
+            await _loanService.RejectLoanAsync(loanId);
+
+            // Assert
+            _loanRepositoryMock.Verify(repo => repo.Update(It.Is<Loan>(l => l.Status == "Rejected")), Times.Once);
+        }
+
+        [Test]
+        public async Task GetAllRejectedLoansAsync_WhenCalled_ShouldReturnLoans()
+        {
+            // Arrange
+            var loans = new List<Loan> { new Loan { Status = "Rejected" } };
+
+            _loanRepositoryMock.Setup(repo => repo.GetAllRejectedLoans()).ReturnsAsync(loans);
+
+            // Act
+            var result = await _loanService.GetAllRejectedLoansAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+        }
+
+        [Test]
+        public async Task GetAllOpenedLoansAsync_WhenCalled_ShouldReturnLoans()
+        {
+            // Arrange
+            var loans = new List<Loan> { new Loan { Status = "Opened" } };
+
+            _loanRepositoryMock.Setup(repo => repo.GetAllOpenedLoans()).ReturnsAsync(loans);
+
+            // Act
+            var result = await _loanService.GetAllOpenedLoansAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+        }
+
+        [Test]
+        public async Task GetAllClosedLoansAsync_WhenCalled_ShouldReturnLoans()
+        {
+            // Arrange
+            var loans = new List<Loan> { new Loan { Status = "Closed" } };
+
+            _loanRepositoryMock.Setup(repo => repo.GetAllClosedLoans()).ReturnsAsync(loans);
+
+            // Act
+            var result = await _loanService.GetAllClosedLoansAsync();
+
+            // Assert
+            Assert.IsNotNull(result);
+        }
+
+        
 
         [Test]
         public async Task ApplyLoan_WhenValidRequest_ShouldApplyLoan()
