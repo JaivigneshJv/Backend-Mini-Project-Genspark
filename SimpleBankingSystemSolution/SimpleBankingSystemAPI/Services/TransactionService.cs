@@ -192,6 +192,7 @@ namespace SimpleBankingSystemAPI.Services
 
                 if (verificationCheck != null)
                 {
+                    await _transactionVerificationRepository.Delete(verificationCheck.Id);
                     WatchLogger.LogWarning($"Transaction already in progress for account ID: {accountId}");
                     throw new TransactionAlreadyInProgressException("Transaction already exists!");
                 }
@@ -305,7 +306,7 @@ namespace SimpleBankingSystemAPI.Services
                     var senderUser = await _userRepository.GetById(senderAccount.UserId);
                     var receiverUser = await _userRepository.GetById(receiverAccount.UserId);
 
-                    senderAccount.Balance -= (verification.Amount - 3);
+                    senderAccount.Balance -= (verification.Amount + 3);
                     receiverAccount.Balance += verification.Amount;
 
                     await _accountRepository.Update(account);
@@ -329,6 +330,7 @@ namespace SimpleBankingSystemAPI.Services
                         Timestamp = DateTime.UtcNow,
                     };
                     await _pendingAccountTransactionRepository.Add(pendingTransaction);
+                    await _transactionVerificationRepository.Delete(verification.Id);
                 }
 
                 WatchLogger.Log($"Transfer verification successful for account ID: {accountId}, Amount: {verification.Amount}, Transaction Type: {verification.TransactionType}");
@@ -522,6 +524,8 @@ namespace SimpleBankingSystemAPI.Services
                 await _pendingAccountTransactionRepository.Update(request);
                 await _accountRepository.Update(senderAccount);
                 await _accountRepository.Update(receiverAccount);
+                await _transactionRepository.Add(_mapper.Map<Transaction>(request));
+
                 WatchLogger.Log($"Transaction request approved for ID: {requestId}");
             }
             catch (Exception ex)

@@ -155,8 +155,25 @@ namespace SimpleBankingSystemAPI.Services
             try
             {
                 WatchLogger.Log("Fetching all accounts");
-
                 var accounts = await _accountRepository.GetAll();
+                return _mapper.Map<IEnumerable<AccountDto>>(accounts);
+            }
+            catch (Exception ex)
+            {
+                WatchLogger.LogError(ex.ToString());
+                throw;
+            }
+        }
+        /// <summary>
+        /// Retrieves all accounts based on user ID.
+        /// </summary>
+        /// <returns>A collection of account DTOs.</returns>
+        public async Task<IEnumerable<AccountDto>> GetAllUserAccountsAsync(Guid userID)
+        {
+            try
+            {
+                WatchLogger.Log("Fetching all accounts based on User");
+                var accounts = await _accountRepository.GetAccountsByUserIdAsync(userID);
                 return _mapper.Map<IEnumerable<AccountDto>>(accounts);
             }
             catch (Exception ex)
@@ -271,7 +288,7 @@ namespace SimpleBankingSystemAPI.Services
         /// </summary>
         /// <param name="userId">The ID of the admin user.</param>
         /// <returns>A collection of account closing DTOs.</returns>
-        public async Task<IEnumerable<AccountClosingDto>> GetPendingAccountClosingRequests(Guid userId)
+        public async Task<IEnumerable<PendingAccountClosing>> GetPendingAccountClosingRequests(Guid userId)
         {
             try
             {
@@ -288,7 +305,7 @@ namespace SimpleBankingSystemAPI.Services
                 }
 
                 var pendingAccountClosingRequests = await _pendingAccountClosingRepository.GetAll();
-                return _mapper.Map<IEnumerable<AccountClosingDto>>(pendingAccountClosingRequests);
+                return _mapper.Map<IEnumerable<PendingAccountClosing>>(pendingAccountClosingRequests);
             }
             catch (Exception ex)
             {

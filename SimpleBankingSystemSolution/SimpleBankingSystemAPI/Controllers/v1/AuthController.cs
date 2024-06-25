@@ -71,10 +71,11 @@ namespace SimpleBankingSystemAPI.Controllers.v1
                 var token = await _userService.LoginAsync(request);
                 Response.Cookies.Append("jwt-token-banking-app", token, new CookieOptions
                 {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.Strict,
                     Secure = true,
-                    MaxAge = TimeSpan.FromMinutes(15)
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    MaxAge = TimeSpan.FromMinutes(15),
+                    Expires = DateTimeOffset.UtcNow.AddMinutes(15)
                 });
                 return Ok(new { token });
             }
@@ -103,7 +104,13 @@ namespace SimpleBankingSystemAPI.Controllers.v1
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (Request.Cookies["jwt-token-banking-app"] != null)
                 {
-                    Response.Cookies.Delete("jwt-token-banking-app");
+                    Response.Cookies.Delete("jwt-token-banking-app", new CookieOptions
+                    {
+                        HttpOnly = true,
+                        SameSite = SameSiteMode.None,
+                        Secure = true,
+                        Expires = DateTimeOffset.UtcNow.AddMinutes(-1)
+                    });
                 }
                 WatchLogger.Log($"{userId} Logged Out!");
                 return Ok(new { Message = "Logged out successfully." });

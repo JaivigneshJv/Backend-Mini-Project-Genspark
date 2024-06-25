@@ -14,8 +14,9 @@ namespace SimpleBankingSystemAPI.Interfaces.Services
         Task<AccountDto> UpdateAccountAsync(Guid userId, Guid accountId, UpdateAccountRequest request);
         Task CloseAccountAsync(Guid userId, Guid accountId,AccountClosingDto request);
 
-        Task<IEnumerable<AccountClosingDto>> GetPendingAccountClosingRequests(Guid userId);
+        Task<IEnumerable<PendingAccountClosing>> GetPendingAccountClosingRequests(Guid userId);
         Task AcceptAccountCloseRequest(Guid userId, Guid requestId);
         Task RejectAccountCloseRequest(Guid userId,  Guid requestId);
+        Task<IEnumerable<AccountDto>> GetAllUserAccountsAsync(Guid userID);
     }
 }

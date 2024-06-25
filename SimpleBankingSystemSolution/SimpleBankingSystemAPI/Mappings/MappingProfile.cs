@@ -30,6 +30,8 @@ namespace SimpleBankingSystemAPI.Mappings
             CreateMap<Loan, LoanDto>();
             CreateMap<LoanRepaymentDto, LoanRepayment>();
             CreateMap<LoanRepaymentDto, LoanRepayment>().ReverseMap();
+            CreateMap<PendingAccountTransaction, Transaction>();
+            CreateMap<PendingAccountTransaction, Transaction>().ReverseMap();
 
 
 

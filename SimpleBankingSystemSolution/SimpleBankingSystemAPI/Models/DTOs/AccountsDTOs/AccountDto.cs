@@ -24,6 +24,8 @@ namespace SimpleBankingSystemAPI.Models.DTOs.AccountsDTOs
 
         [Required(ErrorMessage = "Is active status is required")]
         public bool IsActive { get; set; }
+        public Guid UserId { get; set; }
+
     }
 }
 

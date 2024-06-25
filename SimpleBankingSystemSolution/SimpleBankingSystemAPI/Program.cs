@@ -9,6 +9,8 @@ using SimpleBankingSystemAPI.Mappings;
 using SimpleBankingSystemAPI.Models;
 using SimpleBankingSystemAPI.Repositories;
 using SimpleBankingSystemAPI.Services;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using WatchDog;
 using WatchDog.src.Models;
@@ -23,10 +25,24 @@ namespace SimpleBankingSystemAPI
             var builder = WebApplication.CreateBuilder(args);
 
             #region Controllers
-            // Add services to the container.
+            // Add services to the container. 
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
+            #endregion
+
+            #region Cors
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigin",
+                    builder =>
+                    {
+                        builder.WithOrigins("http://localhost:3000", "http://192.168.0.103:3000")
+                               .AllowAnyHeader()
+                               .AllowAnyMethod()
+                               .AllowCredentials();
+                    });
+            });
             #endregion
 
             #region Swagger
@@ -135,6 +151,7 @@ namespace SimpleBankingSystemAPI
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseCors("AllowSpecificOrigin");
 
             app.MapControllers();
 
@@ -148,8 +165,30 @@ namespace SimpleBankingSystemAPI
                 opt.WatchPagePassword = watchdogCredentials["password"];
             });
             #endregion
-            
+
+            #region Run
+            //Setup local IP\
+            static string LocalIPAddress()
+            {
+                using (Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, 0))
+                {
+                    socket.Connect("8.8.8.8", 65530);
+                    IPEndPoint? endPoint = socket.LocalEndPoint as IPEndPoint;
+                    if (endPoint != null)
+                    {
+                        return endPoint.Address.ToString();
+                    }
+                    else
+                    {
+                        return "127.0.0.1";
+                    }
+                }
+            }
+            string localIP = LocalIPAddress();
+            app.Urls.Add("http://" + localIP + ":5072");
+            app.Urls.Add("https://" + localIP + ":7072");
             app.Run();
+            #endregion
         }
     }
 }

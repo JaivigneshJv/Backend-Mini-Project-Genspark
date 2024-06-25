@@ -135,6 +135,28 @@ namespace SimpleBankingSystemAPI.Controllers.v1
             }
         }
 
+
+        /// <summary>
+        /// Retrieves all accounts from the account service asynchronously.
+        /// </summary>
+        /// <returns>The list of all accounts.</returns>
+        [Authorize(Policy = "AdminOnly")]
+        [HttpGet("get-all-accounts/{userId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAllAccountsbyUserID(Guid userId)
+        {
+            try
+            {
+                var accounts = await _accountService.GetAllUserAccountsAsync(userId);
+                return Ok(accounts);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+
         /// <summary>
         /// Retrieves all pending account closing requests for the currently logged-in user asynchronously.
         /// </summary>

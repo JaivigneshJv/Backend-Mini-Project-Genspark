@@ -27,5 +27,8 @@ namespace SimpleBankingSystemAPI.Models.DTOs.LoanDTOs
         public DateTime TargetDate { get; set; }
 
         public DateTime? RepaidDate { get; set; }
+        public Guid AccountId { get; set; }
+
+
     }
 }
